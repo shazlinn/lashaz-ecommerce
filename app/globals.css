@@ -1,17 +1,22 @@
 @import "tailwindcss";
 
+/* Light theme defaults */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* --font-sans will be provided by next/font/google in app/layout.tsx */
 }
 
-@theme inline {
+/* Tailwind v4 inline theme tokens (converted for standard CSS) */
+:root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans); /* use the variable from layout (e.g., Inter) */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }
 
+/* Dark scheme */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +24,10 @@
   }
 }
 
+/* Base body styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
