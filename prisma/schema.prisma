@@ -12,6 +12,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserStatus {
+  active
+  deactivated
+}
+
 // ---------------------------------
 // --- APPLICATION MODELS
 // ---------------------------------
@@ -23,6 +28,7 @@ model User {
   email          String    @unique
   hashedPassword String
   role           String    @default("customer") // e.g., "customer" or "admin"
+  status         UserStatus  @default(active)   // <--- NEW
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
