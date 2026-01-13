@@ -1,24 +1,29 @@
-// app/admin/page.tsx
-import { PageHeader } from '@/components/admin/PageHeader';
+'use client';
 
 export default function AdminHome() {
   return (
-    <section>
-      <PageHeader title="Dashboard" subtitle="Quick overview of store activity" />
+    <section className="space-y-8">
+      {/* Local Page Header - Unique to this page */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted">Quick overview of store activity </p>
+      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Grid - Using your Metric component */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <Metric title="Sales (Today)" value="RM 0.00" />
         <Metric title="Orders (Today)" value="0" />
         <Metric title="Active Users" value="0" />
         <Metric title="Low Stock" value="0" />
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      {/* Data Panels */}
+      <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Recent Orders">
-          <Empty>Recent orders will appear here.</Empty>
+          <Empty>Recent orders will appear here[cite: 1043].</Empty>
         </Panel>
         <Panel title="Top Products">
-          <Empty>Top products will appear here.</Empty>
+          <Empty>Top products will appear here[cite: 1023].</Empty>
         </Panel>
       </div>
     </section>
@@ -27,9 +32,9 @@ export default function AdminHome() {
 
 function Metric({ title, value }: { title: string; value: string }) {
   return (
-    <div className="card">
-      <div className="small text-muted">{title}</div>
-      <div className="mt-1 text-2xl font-semibold">{value}</div>
+    <div className="card shadow-sm transition-transform hover:scale-[1.01]">
+      <div className="small text-muted font-medium uppercase tracking-wider">{title}</div>
+      <div className="mt-2 text-3xl font-bold tracking-tight">{value}</div>
     </div>
   );
 }
@@ -42,8 +47,8 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="card">
-      <div className="mb-2 card-title">{title}</div>
+    <div className="card shadow-sm border" style={{ borderColor: 'var(--border)' }}>
+      <div className="mb-4 text-base font-semibold tracking-tight">{title}</div>
       {children}
     </div>
   );
@@ -52,9 +57,13 @@ function Panel({
 function Empty({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="rounded-md border border-dashed p-6 text-center xs text-muted"
-      style={{ borderColor: 'var(--border)' }}
+      className="flex flex-col items-center justify-center rounded-xl border border-dashed py-12 px-6 text-center text-sm text-muted"
+      style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}
     >
+      <div className="mb-2 h-10 w-10 rounded-full bg-muted/20 flex items-center justify-center">
+        {/* Placeholder icon */}
+        <div className="h-4 w-4 rounded-full border-2 border-muted/30" />
+      </div>
       {children}
     </div>
   );
