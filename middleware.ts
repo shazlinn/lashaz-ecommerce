@@ -18,6 +18,10 @@ function isBypassed(pathname: string) {
 
 export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
   if (isBypassed(pathname)) return NextResponse.next();
 
   const token = await getToken({ req }); // { id, role, ... } if your jwt callback sets them
