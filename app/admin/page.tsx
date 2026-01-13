@@ -1,18 +1,16 @@
 // app/admin/page.tsx
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from '@/components/admin/PageHeader';
 
 export default function AdminHome() {
   return (
     <section>
-      <PageHeader
-        title="Dashboard"
-        subtitle="Quick overview of store activity"
-      />
+      <PageHeader title="Dashboard" subtitle="Quick overview of store activity" />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card title="Sales (Today)" value="RM 0.00" />
-        <Card title="Orders (Today)" value="0" />
-        <Card title="Active Users" value="0" />
-        <Card title="Low Stock" value="0" />
+        <Metric title="Sales (Today)" value="RM 0.00" />
+        <Metric title="Orders (Today)" value="0" />
+        <Metric title="Active Users" value="0" />
+        <Metric title="Low Stock" value="0" />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -27,11 +25,11 @@ export default function AdminHome() {
   );
 }
 
-function Card({ title, value }: { title: string; value: string }) {
+function Metric({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4">
-      <div className="text-sm text-zinc-600">{title}</div>
-      <div className="mt-2 text-2xl font-semibold">{value}</div>
+    <div className="card">
+      <div className="small text-muted">{title}</div>
+      <div className="mt-1 text-2xl font-semibold">{value}</div>
     </div>
   );
 }
@@ -44,8 +42,8 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4">
-      <div className="mb-3 text-sm font-medium text-zinc-700">{title}</div>
+    <div className="card">
+      <div className="mb-2 card-title">{title}</div>
       {children}
     </div>
   );
@@ -53,7 +51,10 @@ function Panel({
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-md border border-dashed border-zinc-200 p-6 text-center text-sm text-zinc-500">
+    <div
+      className="rounded-md border border-dashed p-6 text-center xs text-muted"
+      style={{ borderColor: 'var(--border)' }}
+    >
       {children}
     </div>
   );

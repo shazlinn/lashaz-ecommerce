@@ -6,16 +6,16 @@ type TableProps = {
 
 export function Table({ headers, children }: TableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200">
+    <div className="overflow-x-auto rounded-lg border table-card">
       <table className="min-w-full text-left text-sm">
-        <thead className="bg-zinc-50 text-zinc-600">
+        <thead className="table-head">
           <tr>
             {headers.map((h) => (
               <th key={h} className="px-4 py-3 font-medium">{h}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-100">{children}</tbody>
+        <tbody className="divide-y table-rows">{children}</tbody>
       </table>
     </div>
   );

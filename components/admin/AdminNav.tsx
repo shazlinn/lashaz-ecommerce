@@ -1,6 +1,5 @@
 'use client';
 
-// components/admin/AdminNav.tsx
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -21,11 +20,18 @@ export default function AdminNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`rounded-md px-3 py-2 text-sm ${
-              active
-                ? 'bg-zinc-900 text-white'
-                : 'text-zinc-700 hover:bg-zinc-100'
-            }`}
+            className="rounded-md px-3 py-2 text-sm"
+            style={{
+              // active = filled chip; inactive = subtle text on hoverable bg
+              background: active ? 'var(--fg)' : 'transparent',
+              color: active ? 'var(--bg)' : 'var(--color-muted)',
+            }}
+            onMouseEnter={(e) => {
+              if (!active) (e.currentTarget.style.background = 'var(--card)');
+            }}
+            onMouseLeave={(e) => {
+              if (!active) (e.currentTarget.style.background = 'transparent');
+            }}
           >
             {item.label}
           </Link>
