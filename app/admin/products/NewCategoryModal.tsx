@@ -1,3 +1,4 @@
+// app/admin/products/NewCategoryModal.tsx
 'use client';
 
 import { useState } from 'react';

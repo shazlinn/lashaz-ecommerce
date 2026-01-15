@@ -233,6 +233,14 @@ h3 { font-size: 1.0625rem; font-weight: 600; line-height: 1.32; }
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
 }
+.btn-secondary {
+  background: var(--clr-surface-a10);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
 .btn-primary:hover { background: var(--clr-primary-a20); }
 
 .btn-muted {

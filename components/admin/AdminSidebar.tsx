@@ -6,7 +6,8 @@ import {
   Squares2X2Icon, 
   UsersIcon, 
   ShoppingBagIcon, 
-  ArchiveBoxIcon 
+  ArchiveBoxIcon,
+  TagIcon 
 } from '@heroicons/react/24/outline';
 
 // Define the shape of the user prop passed from the server layout
@@ -22,6 +23,7 @@ const items = [
   { href: '/admin/users', label: 'Users', icon: UsersIcon },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBagIcon },
   { href: '/admin/products', label: 'Products', icon: ArchiveBoxIcon },
+  { href: '/admin/categories', label: 'Categories', icon: TagIcon },
 ];
 
 export default function AdminSidebar({ user }: AdminSidebarProps) {
