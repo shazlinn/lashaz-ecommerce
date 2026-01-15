@@ -1,3 +1,4 @@
+// app/admin/categories/page.tsx
 import prisma from '@/lib/prisma';
 import CategoriesClient from './categories-client';
 

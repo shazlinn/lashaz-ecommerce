@@ -1,3 +1,4 @@
+// app/admin/products/[id]/edit/EditProductForm.tsx
 'use client';
 
 import { useEffect, useState } from 'react';

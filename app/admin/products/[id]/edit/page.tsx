@@ -1,3 +1,4 @@
+// app/admin/products/[id]/edit/page.tsx
 import prisma from '@/lib/prisma';
 import EditProductForm from './EditProductForm';
 import { notFound } from 'next/navigation';

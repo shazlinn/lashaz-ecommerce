@@ -4,7 +4,6 @@
 import { useMemo, useState } from 'react';
 import { Table } from '@/components/ui/Table';
 import { useRouter } from 'next/navigation';
-import NewCategoryModal from './NewCategoryModal';
 import Link from 'next/link';
 
 export type ProductRow = {
@@ -53,7 +52,6 @@ async function deleteProduct(id: string) {
           className="w-full max-w-md input"
         />
         <div className="flex items-center gap-2">
-          <NewCategoryModal onCreated={() => router.refresh()} />
           <Link href="/admin/products/new" className="btn-secondary">
               + Add Product
           </Link>

@@ -1,3 +1,4 @@
+// app/admin/categories/categories-client.tsx
 'use client';
 
 import { useMemo, useState } from 'react';
