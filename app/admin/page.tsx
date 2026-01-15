@@ -20,10 +20,10 @@ export default function AdminHome() {
       {/* Data Panels */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Recent Orders">
-          <Empty>Recent orders will appear here[cite: 1043].</Empty>
+          <Empty>Recent orders will appear here.</Empty>
         </Panel>
         <Panel title="Top Products">
-          <Empty>Top products will appear here[cite: 1023].</Empty>
+          <Empty>Top products will appear here.</Empty>
         </Panel>
       </div>
     </section>

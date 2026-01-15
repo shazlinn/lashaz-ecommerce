@@ -12,7 +12,7 @@ type OrderRow = {
   tracking?: string;
 };
 
-// Mock data based on your Order Management functional requirements [cite: 715, 1043]
+// Mock data based on your Order Management functional requirements 
 const MOCK: OrderRow[] = [
   { id: "ORD-7721", customer: "Amina", total: "RM 89.00", status: "paid", date: "2026-01-10", tracking: "MY123" },
   { id: "ORD-7722", customer: "Farah", total: "RM 55.00", status: "pending", date: "2026-01-11" },
@@ -52,7 +52,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Table utilizing the Table UI component [cite: 1043] */}
+      {/* Table utilizing the Table UI component  */}
       <Table headers={["Order ID", "Customer", "Total", "Status", "Date", "Tracking", ""]}>
         {filtered.map((o) => (
           <tr key={o.id} className="table-row">

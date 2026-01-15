@@ -2,7 +2,7 @@ import { fetchUsers } from '@/lib/users';
 import UsersClient from './users-client';
 
 export default async function UsersPage() {
-  const data = await fetchUsers(); // Server-side fetch from User model [cite: 716]
+  const data = await fetchUsers(); // Server-side fetch from User model 
 
   return (
     <section className="space-y-6">
@@ -14,7 +14,7 @@ export default async function UsersPage() {
         </p>
       </div>
 
-      {/* Client component handles filtering and CRUD [cite: 1030] */}
+      {/* Client component handles filtering and CRUD */}
       <UsersClient initialRows={data} />
     </section>
   );

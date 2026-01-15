@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-// Helper to normalize Decimal to string safely [cite: 476, 480]
+// Helper to normalize Decimal to string safely
 function normalize(obj: any) {
   if (!obj) return obj;
   return {
@@ -10,7 +10,7 @@ function normalize(obj: any) {
   };
 }
 
-// GET Handler [cite: 750]
+// GET Handler 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   // Unwrapping params as required by Next.js 15 
   const { id } = await params;
@@ -38,7 +38,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
 }
 
-// PATCH Handler [cite: 750]
+// PATCH Handler
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
@@ -61,7 +61,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       });
 
       if (tags) {
-        // Syncing many-to-many ProductTag [cite: 927]
+        // Syncing many-to-many ProductTag 
         await tx.productTag.deleteMany({ where: { productId: id } });
         for (const tName of tags) {
           if (!tName.trim()) continue;
@@ -85,16 +85,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 }
 
-// DELETE Handler [cite: 750]
+// DELETE Handler 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   try {
-    // Transactional delete to handle related tables [cite: 929]
+    // Transactional delete to handle related tables 
     await prisma.$transaction([
       prisma.productTag.deleteMany({ where: { productId: id } }),
       prisma.cartItem.deleteMany({ where: { productId: id } }),
-      // Note: OrderItem typically shouldn't be deleted if the order is already placed [cite: 924]
+      // Note: OrderItem typically shouldn't be deleted if the order is already placed
       // but we include it here to ensure the Product can be removed during testing.
       prisma.orderItem.deleteMany({ where: { productId: id } }),
       prisma.product.delete({ where: { id: id } }),

@@ -11,7 +11,7 @@ export const ourFileRouter = {
   // Define a route for product images
   productImage: f({ image: { maxFileSize: "4MB", maxFileCount: 5 } })
     .middleware(async () => {
-      // Protect this route - only admins can upload [cite: 54, 147]
+      // Protect this route - only admins can upload 
       const session = await getServerSession(authOptions);
       if (!session || session.user.role !== "admin") throw new Error("Unauthorized");
       return { userId: session.user.id };

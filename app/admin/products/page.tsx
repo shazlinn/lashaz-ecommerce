@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma';
 import ProductsClient from './products-client';
 
 export default async function ProductsPage() {
-  // Fetch products from the database using the established schema [cite: 926]
+  // Fetch products from the database using the established schema 
   const products = await prisma.product.findMany({
     orderBy: { createdAt: 'desc' },
     include: {

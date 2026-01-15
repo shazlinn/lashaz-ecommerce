@@ -133,6 +133,6 @@ async function deleteProduct(id: string) {
 function formatMYR(val: string | number) {
   const num = typeof val === 'string' ? Number(val) : val;
   if (Number.isNaN(num)) return val;
-  // Standard Malaysian currency formatting [cite: 453, 489]
+  // Standard Malaysian currency formatting
   return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(num);
 }
