@@ -1,33 +1,265 @@
 @import "tailwindcss";
 
-/* Light theme defaults */
+/* ------------------------------
+   THEME TOKENS
+   ------------------------------ */
+
+/* Base fallbacks */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  /* --font-sans will be provided by next/font/google in app/layout.tsx */
+  --font-sans: var(--font-sans);
+
+  /* neutral defaults */
+  --bg: #ffffff;
+  --fg: #171717;
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+
+  /* Pills */
+  --pill-active-bg: #28be8a;
+  --pill-active-fg: #ffffff;
+
+  /* expose */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-pill-active-bg: var(--pill-active-bg);
+  --color-pill-active-fg: var(--pill-active-fg);
 }
 
-/* Tailwind v4 inline theme tokens (converted for standard CSS) */
-:root {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans); /* use the variable from layout (e.g., Inter) */
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
-}
+/* System LIGHT */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]), :root[data-theme="system"] {
+    --clr-dark-a0: #000000;
+    --clr-light-a0: #ffffff;
 
-/* Dark scheme */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --clr-primary-a0: #a27a8a;
+    --clr-primary-a10: #8f6c7a;
+    --clr-primary-a20: #7c5e6a;
+    --clr-primary-a30: #69505a;
+    --clr-primary-a40: #57434b;
+    --clr-primary-a50: #46363d;
+
+    --clr-surface-a0: #ffffff;
+    --clr-surface-a10: #f7f7f7;  /* slightly lighter for subtle contrast */
+    --clr-surface-a20: #e9e9e9;
+    --clr-surface-a30: #dcdcdc;
+    --clr-surface-a40: #cfcfcf;
+    --clr-surface-a50: #c2c2c2;
+
+    --clr-surface-tonal-a0: #f6f1f3;
+    --clr-surface-tonal-a10: #ece6e9;
+    --clr-surface-tonal-a20: #e3dde1;
+    --clr-surface-tonal-a30: #d9d4d8;
+    --clr-surface-tonal-a40: #d0cbd0;
+    --clr-surface-tonal-a50: #c6c3c8;
+
+    --clr-success-a0: #1b7f5c;
+    --clr-success-a10: #28be8a;
+    --clr-success-a20: #58dbad;
+
+    --clr-warning-a0: #b8871f;
+    --clr-warning-a10: #dfae44;
+    --clr-warning-a20: #ebca85;
+
+    --clr-danger-a0: #b13535;
+    --clr-danger-a10: #d06262;
+    --clr-danger-a20: #e29d9d;
+
+    --clr-info-a0: #1e56a3;
+    --clr-info-a10: #347ada;
+    --clr-info-a20: #74a4e6;
+
+    /* app tokens */
+    --bg: var(--clr-surface-a0);
+    --fg: #2a1e1f;                /* slightly darker than #430e13 for readability */
+    --card: var(--clr-surface-tonal-a0);
+    --border: var(--clr-surface-a20);
+    --muted: #6f5a63;             /* toned primary for muted text */
+
+    --pill-active-bg: var(--clr-success-a10);
+    --pill-active-fg: var(--clr-light-a0);
   }
 }
 
-/* Base body styles */
-body {
-  background: var(--background);
-  color: var(--foreground);
+/* System DARK */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]), :root[data-theme="system"] {
+    --clr-dark-a0: #000000;
+    --clr-light-a0: #ffffff;
+
+    --clr-primary-a0: #40c826;
+    --clr-primary-a10: #5fcf45;
+    --clr-primary-a20: #78d55f;
+    --clr-primary-a30: #8edc76;
+    --clr-primary-a40: #a2e28d;
+    --clr-primary-a50: #b6e8a4;
+
+    --clr-surface-a0: #121212;
+    --clr-surface-a10: #1b1b1b;
+    --clr-surface-a20: #2a2a2a;
+    --clr-surface-a30: #3a3a3a;
+    --clr-surface-a40: #4a4a4a;
+    --clr-surface-a50: #5b5b5b;
+
+    --clr-surface-tonal-a0: #1a2217;
+    --clr-surface-tonal-a10: #283225;
+    --clr-surface-tonal-a20: #344033;
+    --clr-surface-tonal-a30: #415041;
+    --clr-surface-tonal-a40: #516052;
+    --clr-surface-tonal-a50: #657467;
+
+    --clr-success-a0: #22946e;
+    --clr-success-a10: #47d5a6;
+    --clr-success-a20: #9ae8ce;
+
+    --clr-warning-a0: #a87a2a;
+    --clr-warning-a10: #d7ac61;
+    --clr-warning-a20: #ecd7b2;
+
+    --clr-danger-a0: #9c2121;
+    --clr-danger-a10: #d94a4a;
+    --clr-danger-a20: #eb9e9e;
+
+    --clr-info-a0: #21498a;
+    --clr-info-a10: #4077d1;
+    --clr-info-a20: #92b2e5;
+
+    /* app tokens */
+    --bg: var(--clr-surface-a0);
+    --fg: #dfe7d7;                /* softer than #b6e8a4 for body text */
+    --card: var(--clr-surface-a10);
+    --border: var(--clr-surface-a30);
+    --muted: var(--clr-surface-a50);
+
+    --pill-active-bg: var(--clr-success-a10);
+    --pill-active-fg: var(--clr-dark-a0);
+  }
+}
+
+/* Forced themes */
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #2a1e1f;
+  --card: #f6f1f3;
+  --border: #e1e1e1;
+  --muted: #6f5a63;
+
+  --pill-active-bg: #28be8a;
+  --pill-active-fg: #ffffff;
+}
+:root[data-theme="dark"] {
+  --bg: #121212;
+  --fg: #dfe7d7;
+  --card: #1b1b1b;
+  --border: #3a3a3a;
+  --muted: #8b8b8b;
+
+  --pill-active-bg: #47d5a6;
+  --pill-active-fg: #000000;
+}
+
+/* ------------------------------
+   TYPOGRAPHY
+   ------------------------------ */
+
+/* Typography base */
+html {
+  font-size: 16px;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--font-sans), system-ui, -apple-system, Segoe UI, Roboto,
     Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  font-weight: 400;
+  line-height: 1.55;
+  font-feature-settings: "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+input, select, textarea, button {
+  font: inherit;
+}
+
+/* Headings tuned for Poppins */
+h1, h2, h3, h4 { letter-spacing: -0.005em; color: var(--fg); }
+h1 { font-size: 1.45rem; font-weight: 700; line-height: 1.22; }
+h2 { font-size: 1.2rem;  font-weight: 600; line-height: 1.28; }
+h3 { font-size: 1.0625rem; font-weight: 600; line-height: 1.32; }
+
+.text-muted { color: var(--color-muted); }
+.small { font-size: 0.9rem; }
+.xs    { font-size: 0.82rem; }
+
+/* ------------------------------
+   COMPONENT HELPERS
+   ------------------------------ */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+.card-title { font-weight: 600; font-size: 0.9375rem; }
+.card-subtitle { color: var(--color-muted); font-size: 0.8125rem; }
+
+.header-card, .table-card, .panel {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.table-head {
+  background: color-mix(in oklab, var(--card) 88%, var(--fg) 12%);
+  color: var(--muted);
+}
+.table-row + .table-row { border-top: 1px solid var(--border); }
+
+/* Status pills */
+.pill-active  { background: var(--pill-active-bg); color: var(--pill-active-fg); }
+.pill-muted   { background: color-mix(in oklab, var(--card) 85%, var(--fg) 15%); color: var(--muted); }
+
+/* Buttons */
+.btn-primary {
+  background: var(--clr-primary-a10);
+  color: var(--clr-light-a0);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+.btn-secondary {
+  background: var(--clr-surface-a10);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+.btn-primary:hover { background: var(--clr-primary-a20); }
+
+.btn-muted {
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+.btn-muted:hover { background: color-mix(in oklab, var(--card) 92%, var(--fg) 8%); }
+
+/* Inputs */
+.input {
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+.input:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in oklab, var(--border) 70%, var(--fg) 30%); }

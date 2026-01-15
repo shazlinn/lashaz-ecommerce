@@ -45,12 +45,14 @@ export default function UsersClient({ initialRows }: { initialRows: AdminUserRow
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <input
-            value={query}
+            value={query ?? ''}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search name, email, or role..."
-            className="w-72 rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-zinc-200"
+            autoComplete="off"
+            className="w-72 rounded-md border px-3 py-2 text-sm outline-none"
+            style={{ borderColor: 'var(--border)' }}
           />
-          {/* <label className="flex items-center gap-2 text-sm text-zinc-700">
+          {/* <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-muted)' }}>
             <input
               type="checkbox"
               checked={showDeactivated}
@@ -70,13 +72,7 @@ export default function UsersClient({ initialRows }: { initialRows: AdminUserRow
             <td className="px-4 py-3">{u.role}</td>
             <td className="px-4 py-3">{u.createdAt}</td>
             <td className="px-4 py-3">
-              <span
-                className={`rounded-full px-2 py-1 text-xs ${
-                  u.status === 'active'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-zinc-100 text-zinc-700'
-                }`}
-              >
+              <span className={`rounded-full px-2 py-1 text-xs ${u.status === 'active' ? 'pill-active' : 'pill-muted'}`}>
                 {u.status}
               </span>
             </td>
@@ -104,7 +100,7 @@ export default function UsersClient({ initialRows }: { initialRows: AdminUserRow
         ))}
       </Table>
       <br></br>
-    <label className="flex items-center gap-2 text-sm text-zinc-700">
+    <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-muted)' }}>
             <input
               type="checkbox"
               checked={showDeactivated}
