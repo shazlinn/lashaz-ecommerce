@@ -2,6 +2,7 @@
 import prisma from '@/lib/prisma';
 import EditProductForm from './EditProductForm';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,6 +33,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
+          <Link href="/admin/products" className="text-xs text-muted hover:underline">← Back to Product List</Link>
           <h1 className="text-2xl font-bold tracking-tight">Edit Product</h1>
           <p className="text-sm text-muted">ID: {product.id}</p>
         </div>

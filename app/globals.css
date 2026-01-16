@@ -1,3 +1,4 @@
+/* ecommerce/app/globals.css */
 @import "tailwindcss";
 
 /* ------------------------------
@@ -6,7 +7,6 @@
 
 /* Base fallbacks */
 :root {
-  --font-sans: var(--font-sans);
 
   /* neutral defaults */
   --bg: #ffffff;
@@ -43,7 +43,7 @@
     --clr-primary-a50: #46363d;
 
     --clr-surface-a0: #ffffff;
-    --clr-surface-a10: #f7f7f7;  /* slightly lighter for subtle contrast */
+    --clr-surface-a10: #f7f7f7;
     --clr-surface-a20: #e9e9e9;
     --clr-surface-a30: #dcdcdc;
     --clr-surface-a40: #cfcfcf;
@@ -74,10 +74,10 @@
 
     /* app tokens */
     --bg: var(--clr-surface-a0);
-    --fg: #2a1e1f;                /* slightly darker than #430e13 for readability */
+    --fg: #2a1e1f;
     --card: var(--clr-surface-tonal-a0);
     --border: var(--clr-surface-a20);
-    --muted: #6f5a63;             /* toned primary for muted text */
+    --muted: #6f5a63;
 
     --pill-active-bg: var(--clr-success-a10);
     --pill-active-fg: var(--clr-light-a0);
@@ -129,7 +129,7 @@
 
     /* app tokens */
     --bg: var(--clr-surface-a0);
-    --fg: #dfe7d7;                /* softer than #b6e8a4 for body text */
+    --fg: #dfe7d7;
     --card: var(--clr-surface-a10);
     --border: var(--clr-surface-a30);
     --muted: var(--clr-surface-a50);
@@ -180,6 +180,15 @@ html, body {
   font-feature-settings: "liga" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Forced override for Josefin Sans */
+.font-josefin {
+  font-family: var(--font-josefin), sans-serif !important;
+}
+
+.font-work {
+  font-family: var(--font-work), sans-serif !important;
 }
 
 input, select, textarea, button {
