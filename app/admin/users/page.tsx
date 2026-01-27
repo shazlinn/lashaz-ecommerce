@@ -1,3 +1,4 @@
+// lashaz-ecommerce/app/admin/users/page.tsx
 import { fetchUsers } from '@/lib/users';
 import UsersClient from './users-client';
 

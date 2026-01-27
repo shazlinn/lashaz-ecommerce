@@ -1,6 +1,8 @@
+// lashaz-ecommerce/lib/auth.ts
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import type { NextAuthOptions } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google'; // NEW
 import prisma from './prisma';
 import * as bcrypt from 'bcryptjs';
 import { getServerSession } from 'next-auth';
@@ -12,6 +14,12 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
 
   providers: [
+    // 1. Add Google Provider
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    
     Credentials({
       name: 'credentials',
       credentials: {
@@ -25,21 +33,9 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         });
         
+        // Ensure user exists and has a password (OAuth users won't)
         if (!user || !user.hashedPassword) return null;
 
-        // --- TEMPORARY DEVELOPMENT BYPASS ---
-        // Since database currently stores plain text "test" instead of a hash
-        // if (user.email === 'shaz@example.com' && credentials.password === user.hashedPassword) {
-        //    return {
-        //     id: user.id,
-        //     name: user.name,
-        //     email: user.email,
-        //     role: user.role ?? 'admin',
-        //   } as any;
-        // }
-        // ------------------------------------
-
-        // Normal Bcrypt comparison for other users/production
         const ok = await bcrypt.compare(credentials.password, user.hashedPassword);
         if (!ok) return null;
 
@@ -48,7 +44,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role ?? 'customer',
-        } as any;
+        };
       },
     }),
   ],
