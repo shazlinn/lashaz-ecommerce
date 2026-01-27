@@ -1,3 +1,4 @@
+// lashaz-ecommerce/app/product/[slug]/page.tsx
 import { getServerSideProductBySlug } from '@/lib/api'; // Updated import
 import ProductGallery from '@/components/frontstore/ProductGallery';
 import Header from '@/components/frontstore/Header';

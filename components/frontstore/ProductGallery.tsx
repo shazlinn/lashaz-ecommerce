@@ -1,3 +1,4 @@
+// lashaz-ecommerce/components/frontstore/ProductGallery.tsx
 'use client';
 
 import { useState } from 'react';
@@ -5,7 +6,7 @@ import Image from 'next/image';
 import { MagnifyingGlassPlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function ProductGallery({ images }: { images: string[] }) {
-  const [mainImage, setMainImage] = useState(images[0] || '/images/placeholder-makeup.png');
+  const [mainImage, setMainImage] = useState(images[0] || '/placeholder-makeup.png');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0, show: false });
 

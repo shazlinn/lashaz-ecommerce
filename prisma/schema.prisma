@@ -148,6 +148,8 @@ model CartItem {
   productId String
   cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  // duplicate rows for the same product in one cart
+  @@unique([cartId, productId])
 }
 
 model Order {
