@@ -1,3 +1,4 @@
+// lashaz-ecommerce/app/admin/products/page.tsx
 import prisma from '@/lib/prisma';
 import ProductsClient from './products-client';
 

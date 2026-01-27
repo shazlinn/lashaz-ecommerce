@@ -5,85 +5,136 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ email: '', password: '' });
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
+  
   const params = useSearchParams();
   const router = useRouter();
+  
+  // callbackUrl handles where to go after successful login (e.g., /admin)
   const callbackUrl = params.get('callbackUrl') ?? '/';
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr('');
     setLoading(true);
+
     const res = await signIn('credentials', {
       redirect: false,
-      email,
-      password,
-      callbackUrl,
+      email: form.email,
+      password: form.password,
     });
-    setLoading(false);
+
     if (res?.error) {
       setErr('Invalid email or password');
+      setLoading(false);
       return;
     }
+
+    // Success: push to original destination (like /admin)
     router.push(callbackUrl);
   }
 
   return (
-    <div className="grid min-h-dvh place-items-center px-4" style={{ background: 'var(--bg)', color: 'var(--fg)' }}>
-      <div className="w-full max-w-sm rounded-lg border p-6" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-        <h1 className="text-lg font-semibold">Sign in</h1>
-        <p className="mt-1 text-sm" style={{ color: 'var(--color-muted)' }}>
-          Use your email and password
-        </p>
-
-        <form onSubmit={onSubmit} className="mt-4 grid gap-3">
-          <input
-            type="email"
-            placeholder="Email"
-            className="rounded-md border px-3 py-2"
-            style={{ background: 'var(--card)', color: 'var(--fg)', borderColor: 'var(--border)' }}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+    <main className="min-h-screen bg-white flex items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-5xl bg-white rounded-[2rem] overflow-hidden shadow-2xl flex flex-col md:flex-row min-h-[650px] border border-gray-100">
+        
+        {/* Left Side: Brand Image (consistent with your modal) */}
+        <div className="relative w-full md:w-1/2 bg-zinc-100 hidden md:block">
+          <Image 
+            src="/sign-up.png" 
+            alt="La Shaz Brand Image" 
+            fill 
+            className="object-cover"
+            priority 
           />
-          <input
-            type="password"
-            placeholder="Password"
-            className="rounded-md border px-3 py-2"
-            style={{ background: 'var(--card)', color: 'var(--fg)', borderColor: 'var(--border)' }}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {err && <div className="text-sm" style={{ color: 'var(--clr-danger-a10)' }}>{err}</div>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-md px-3 py-2 text-sm"
-            style={{
-              background: 'var(--clr-primary-a10)',
-              color: 'var(--clr-light-a0)',
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
+        </div>
 
-        <div className="mt-4 flex items-center justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
-          <a href="/forgot-password" className="underline" style={{ color: 'var(--clr-info-a10)' }}>
-            Forgot password?
-          </a>
-          <a href="/signup" className="underline" style={{ color: 'var(--clr-info-a10)' }}>
-            Create an account
-          </a>
+        {/* Right Side: Login Form */}
+        <div className="w-full md:w-1/2 p-8 md:p-14 flex flex-col justify-center bg-white">
+          <div className="max-w-sm mx-auto w-full space-y-8 animate-in fade-in duration-500">
+            
+            <header>
+              <h1 className="text-4xl font-bold font-josefin uppercase tracking-tight text-black">
+                Welcome Back
+              </h1>
+              <p className="text-gray-500 mt-2">
+                Sign in to manage your store or shop your favorites.
+              </p>
+            </header>
+
+            <form onSubmit={onSubmit} className="grid gap-4">
+              <div className="space-y-1">
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  className="input w-full py-3.5 focus:ring-2 focus:ring-black/5"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1">
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className="input w-full py-3.5 focus:ring-2 focus:ring-black/5"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
+                />
+              </div>
+
+              {err && (
+                <p className="text-sm font-medium text-red-500 animate-pulse">
+                  {err}
+                </p>
+              )}
+
+              <Link 
+                href="/forgot-password" 
+                className="text-xs text-gray-400 hover:text-black transition-colors w-fit"
+              >
+                Forgot your password?
+              </Link>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary py-4 rounded-full font-bold text-lg mt-2 shadow-lg active:scale-95 transition-all disabled:opacity-50"
+              >
+                {loading ? 'Verifying...' : 'Sign In'}
+              </button>
+            </form>
+
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-gray-100"></div>
+              <span className="flex-shrink mx-4 text-gray-400 text-xs uppercase font-josefin tracking-widest">or</span>
+              <div className="flex-grow border-t border-gray-100"></div>
+            </div>
+
+            <button 
+              type="button"
+              className="w-full flex items-center justify-center gap-2 border border-gray-200 py-3 rounded-full hover:bg-gray-50 transition-colors text-sm font-medium"
+            >
+              <img src="https://www.svgrepo.com/show/355037/google.svg" className="h-4 w-4" alt="Google" />
+              Continue with Google
+            </button>
+
+            <footer className="text-center text-sm text-gray-500">
+              New to SmartShop?{' '}
+              <Link href="/signup" className="text-black font-bold hover:underline">
+                Sign up for free
+              </Link>
+            </footer>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

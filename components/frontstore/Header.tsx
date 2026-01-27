@@ -1,3 +1,4 @@
+// lashaz-ecommerce/components/frontstore/Header.tsx
 'use client';
 
 import { useState } from 'react';
@@ -34,10 +35,12 @@ export default function Header() {
             </Link>
 
             <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-800">
-              <button className="flex items-center gap-1 hover:text-black transition-colors">
+              <Link 
+                href="/shop" 
+                className="flex items-center gap-1 hover:text-black transition-colors"
+              >
                 Shop
-                <ChevronDownIcon className="h-4 w-4" />
-              </button>
+              </Link>
               <Link href="/sale" className="hover:text-black transition-colors">
                 On Sale
               </Link>
