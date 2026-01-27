@@ -1,27 +1,31 @@
-// app/components/frontstore/ShopContent.tsx
 'use client';
 
 import { useState, useMemo } from 'react';
 import ProductCard from './ProductCard';
 
 export default function ShopContent({ initialProducts }: { initialProducts: any[] }) {
-  // 1. Dynamic Category Extraction
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(new Set(initialProducts.map(p => p.category)));
     return ['All', ...uniqueCategories];
   }, [initialProducts]);
 
-  // 2. Dynamic Price Range (finds the highest price in your actual DB)
+  // 1. Calculate the raw max price from the database
   const maxProductPrice = useMemo(() => {
     if (initialProducts.length === 0) return 1000;
     return Math.max(...initialProducts.map(p => p.price));
   }, [initialProducts]);
 
+  // 2. NEW: Round up to the nearest 10 for a cleaner slider UI
+  const sliderMax = useMemo(() => {
+    return Math.ceil(maxProductPrice / 10) * 10;
+  }, [maxProductPrice]);
+
   const [activeCategory, setActiveCategory] = useState('All');
-  const [priceRange, setPriceRange] = useState(maxProductPrice);
+  
+  // 3. Initialize the range to our new rounded sliderMax
+  const [priceRange, setPriceRange] = useState(sliderMax);
   const [sortOrder, setSortOrder] = useState('newest');
 
-  // 3. Combined Filtering and Sorting Logic
   const filteredProducts = useMemo(() => {
     let results = initialProducts.filter(p => {
       const categoryMatch = activeCategory === 'All' || p.category === activeCategory;
@@ -37,7 +41,6 @@ export default function ShopContent({ initialProducts }: { initialProducts: any[
 
   return (
     <div className="flex flex-col lg:flex-row gap-12 font-sans">
-      {/* Sidebar Filters */}
       <aside className="w-full lg:w-64 space-y-12">
         <section>
           <h3 className="font-josefin font-bold uppercase tracking-widest text-xs mb-6 text-black/40">
@@ -67,10 +70,11 @@ export default function ShopContent({ initialProducts }: { initialProducts: any[
             </h3>
             <span className="text-sm font-bold text-black">MYR {priceRange}</span>
           </div>
+          {/* UPDATED: max is now the rounded sliderMax */}
           <input 
             type="range" 
             min="0" 
-            max={maxProductPrice} 
+            max={sliderMax} 
             step="1"
             value={priceRange}
             onChange={(e) => setPriceRange(parseInt(e.target.value))}
@@ -78,12 +82,12 @@ export default function ShopContent({ initialProducts }: { initialProducts: any[
           />
           <div className="flex justify-between text-[10px] font-bold text-gray-300 mt-4 uppercase tracking-tighter">
             <span>MYR 0</span>
-            <span>MYR {maxProductPrice}</span>
+            {/* UPDATED: Label shows the rounded max */}
+            <span>MYR {sliderMax}</span>
           </div>
         </section>
       </aside>
 
-      {/* Product Grid */}
       <div className="flex-1">
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
           <p className="text-sm text-gray-400 font-medium">
@@ -115,8 +119,9 @@ export default function ShopContent({ initialProducts }: { initialProducts: any[
             <p className="text-gray-400 font-medium italic">
               No products found in this range.
             </p>
+            {/* FIXED: Removed the invalid comment from within the button tag */}
             <button 
-              onClick={() => { setActiveCategory('All'); setPriceRange(maxProductPrice); }} 
+              onClick={() => { setActiveCategory('All'); setPriceRange(sliderMax); }} 
               className="mt-4 text-black font-bold underline underline-offset-4 hover:opacity-70 transition-opacity"
             >
               Reset all filters
