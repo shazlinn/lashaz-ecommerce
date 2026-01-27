@@ -1,3 +1,4 @@
+// app/admin/users/users-client.tsx
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -5,109 +6,189 @@ import { Table } from '@/components/ui/Table';
 import type { AdminUserRow } from '@/lib/users';
 import EditUserModal from './EditUserModal';
 import NewUserModal from './NewUserModal';
+import ViewUserModal from './ViewUserModal'; 
 import { useRouter } from 'next/navigation';
+import { 
+  ChevronLeftIcon, 
+  ChevronRightIcon, 
+  PencilSquareIcon, 
+  UserMinusIcon, 
+  UserPlusIcon,
+  EyeIcon 
+} from '@heroicons/react/24/outline';
 
 export default function UsersClient({ initialRows }: { initialRows: AdminUserRow[] }) {
   const [query, setQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'customer' | 'admin'>('customer');
+  const [currentPage, setCurrentPage] = useState(1);
   const [showDeactivated, setShowDeactivated] = useState(false);
   const router = useRouter();
+  
+  const itemsPerPage = 10;
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
     return initialRows
+      .filter((u) => u.role === activeTab)
       .filter((u) => (showDeactivated ? true : u.status === 'active'))
       .filter((u) =>
-        [u.name ?? '', u.email, u.role].some((v) => v.toLowerCase().includes(q))
+        [u.name ?? '', u.email].some((v) => v.toLowerCase().includes(q))
       );
-  }, [query, initialRows, showDeactivated]);
+  }, [query, initialRows, showDeactivated, activeTab]);
 
-  async function deactivateUser(id: string) {
-    if (!confirm('Set user status to deactivated?')) return;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
+
+  const handleTabChange = (tab: 'customer' | 'admin') => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  async function toggleUserStatus(id: string, currentStatus: string) {
+    const newStatus = currentStatus === 'active' ? 'deactivated' : 'active';
+    if (newStatus === 'deactivated' && !confirm('Deactivate this user?')) return;
+    
     await fetch(`/api/admin/users/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'deactivated' }),
-    });
-    router.refresh();
-  }
-
-  async function activateUser(id: string) {
-    await fetch(`/api/admin/users/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'active' }),
+      body: JSON.stringify({ status: newStatus }),
     });
     router.refresh();
   }
 
   return (
-    <>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <input
-            value={query ?? ''}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search name, email, or role..."
-            autoComplete="off"
-            className="w-72 rounded-md border px-3 py-2 text-sm outline-none"
-            style={{ borderColor: 'var(--border)' }}
-          />
-          {/* <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-muted)' }}>
-            <input
-              type="checkbox"
-              checked={showDeactivated}
-              onChange={(e) => setShowDeactivated(e.target.checked)}
-            />
-            Show deactivated
-          </label> */}
+    <div className="space-y-6">
+      {/* Role Toggle Tabs */}
+      <div className="flex justify-center">
+        <div 
+          className="p-1 rounded-full flex gap-1 border transition-colors" 
+          style={{ backgroundColor: 'var(--muted)', borderColor: 'var(--border)' }}
+        >
+          <button 
+            onClick={() => handleTabChange('customer')}
+            className={`px-8 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'customer' 
+              ? 'bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm' 
+              : 'text-zinc-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200'
+            }`}
+          >
+            Customers
+          </button>
+          <button 
+            onClick={() => handleTabChange('admin')}
+            className={`px-8 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'admin' 
+              ? 'bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm' 
+              : 'text-zinc-400 dark:text-zinc-500 hover:text-black dark:hover:text-zinc-200'
+            }`}
+          >
+            Admins
+          </button>
         </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <input
+          value={query ?? ''}
+          onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
+          placeholder={`Search ${activeTab}s...`}
+          className="w-full max-w-md input rounded-full px-5 py-2.5"
+        />
         <NewUserModal onCreated={() => router.refresh()} />
       </div>
 
-      <Table headers={['Name', 'Email', 'Role', 'Created', 'Status', '']}>
-        {filtered.map((u) => (
-          <tr key={u.id}>
-            <td className="px-4 py-3">{u.name ?? '-'}</td>
-            <td className="px-4 py-3">{u.email}</td>
-            <td className="px-4 py-3">{u.role}</td>
-            <td className="px-4 py-3">{u.createdAt}</td>
-            <td className="px-4 py-3">
-              <span className={`rounded-full px-2 py-1 text-xs ${u.status === 'active' ? 'pill-active' : 'pill-muted'}`}>
+      <Table headers={['Name', 'Email', 'Created', 'Status', 'Actions']}>
+        {paginatedRows.map((u) => (
+          <tr 
+            key={u.id} 
+            className="table-row border-b group/row" 
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <td className="px-4 py-4 font-josefin font-bold uppercase text-xs tracking-tight text-fg">
+              {u.name ?? '-'}
+            </td>
+            <td className="px-4 py-4 text-sm text-muted">{u.email}</td>
+            <td className="px-4 py-4 text-xs text-muted">{u.createdAt}</td>
+            <td className="px-4 py-4">
+              <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-tighter ${u.status === 'active' ? 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400' : 'bg-muted text-muted'}`}>
                 {u.status}
               </span>
             </td>
-            <td className="px-4 py-3 text-right">
-              <div className="flex justify-end gap-2">
-                <EditUserModal user={u} onUpdated={() => router.refresh()} />
-                {u.status === 'active' ? (
-                  <button
-                    onClick={() => deactivateUser(u.id)}
-                    className="rounded-md border border-zinc-300 px-2 py-1 text-xs"
-                  >
-                    Deactivate
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => activateUser(u.id)}
-                    className="rounded-md border border-zinc-300 px-2 py-1 text-xs"
-                  >
-                    Activate
-                  </button>
-                )}
+            <td className="px-4 py-4 w-32"> {/* 3. Increased width slightly to fit three icons */}
+              <div className="flex items-center gap-4">
+                {/* VIEW ACTION/route.ts] */}
+                <ViewUserModal 
+                  userId={u.id} 
+                  renderTrigger={() => (
+                    <button className="text-muted hover:text-black dark:hover:text-white transition-colors" title="View Details">
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                  )}
+                />
+
+                {/* EDIT ACTION */}
+                <EditUserModal 
+                  user={u} 
+                  onUpdated={() => router.refresh()} 
+                  renderTrigger={() => (
+                    <button className="text-muted hover:text-fg transition-colors" title="Edit User">
+                      <PencilSquareIcon className="h-5 w-5" />
+                    </button>
+                  )}
+                />
+
+                {/* STATUS TOGGLE */}
+                <button
+                  onClick={() => toggleUserStatus(u.id, u.status)}
+                  className={`transition-colors ${u.status === 'active' ? 'text-muted hover:text-red-500' : 'text-muted hover:text-green-600'}`}
+                  title={u.status === 'active' ? "Deactivate" : "Activate"}
+                >
+                  {u.status === 'active' ? <UserMinusIcon className="h-5 w-5" /> : <UserPlusIcon className="h-5 w-5" />}
+                </button>
               </div>
             </td>
           </tr>
         ))}
       </Table>
-      <br></br>
-    <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-muted)' }}>
-            <input
-              type="checkbox"
-              checked={showDeactivated}
-              onChange={(e) => setShowDeactivated(e.target.checked)}
-            />
-            Show deactivated
-    </label>
-    </>
+
+      <div className="flex items-center justify-between pt-4">
+        <label className="flex items-center gap-2 text-[10px] font-bold uppercase text-muted tracking-widest cursor-pointer hover:text-fg transition-colors">
+          <input
+            type="checkbox"
+            className="rounded border-gray-300 dark:border-zinc-700 bg-transparent text-black focus:ring-black"
+            checked={showDeactivated}
+            onChange={(e) => setShowDeactivated(e.target.checked)}
+          />
+          Show deactivated
+        </label>
+
+        <div className="flex items-center gap-4">
+          <p className="text-xs text-muted font-medium">
+            Page <span className="text-fg font-bold">{currentPage}</span> of {totalPages || 1}
+          </p>
+          <div className="flex gap-1">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              className="p-2 rounded-full border border-border disabled:opacity-30 hover:bg-muted transition-colors"
+              style={{ borderColor: 'var(--border)' }}
+            >
+              <ChevronLeftIcon className="h-4 w-4 text-muted" />
+            </button>
+            <button 
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              className="p-2 rounded-full border border-border disabled:opacity-30 hover:bg-muted transition-colors"
+              style={{ borderColor: 'var(--border)' }}
+            >
+              <ChevronRightIcon className="h-4 w-4 text-muted" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

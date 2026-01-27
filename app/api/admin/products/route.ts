@@ -1,90 +1,46 @@
-//api/admin/products/route.ts
+// lashaz-ecommerce/app/api/admin/products/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-
-export async function GET() {
-  try {
-    const products = await prisma.product.findMany({
-      orderBy: { createdAt: 'desc' },
-      include: { category: true, tags: { include: { tag: true } } },
-    });
-    // Optional: normalize Decimal to string for clients that expect strings
-    const normalized = products.map((p) => ({
-      ...p,
-      price: p.price?.toString?.() ?? p.price,
-      // imageUrl is optional in your schema; no change needed
-    }));
-    return NextResponse.json(normalized);
-  } catch (e: any) {
-    console.error('[PRODUCT_LIST_ERROR]', e?.message ?? e);
-    return NextResponse.json({ error: 'Internal' }, { status: 500 });
-  }
-}
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
       name,
+      slug, // 1. Added slug to the destructuring
       description,
       price,
       stock,
       imageUrl,
       categoryId,
       tags,
-    } = body as {
-      name?: string;
-      description?: string;
-      price?: number | string;
-      stock?: number | string;
-      imageUrl?: string;
-      categoryId?: string;
-      tags?: string[];
-    };
+    } = body;
 
-    // Basic validation
-    if (!name || !categoryId || price === undefined || price === null) {
+    // 2. Updated validation to require slug
+    if (!name || !slug || !categoryId || price === undefined) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, price, categoryId' },
+        { error: 'Missing required fields: name, slug, price, categoryId' },
         { status: 400 }
       );
     }
 
-    const priceNumber =
-      typeof price === 'string' ? Number(price) : (price as number);
-    const stockNumber =
-      stock === undefined || stock === null
-        ? 0
-        : typeof stock === 'string'
-        ? Number(stock)
-        : (stock as number);
+    const priceNumber = typeof price === 'string' ? Number(price) : price;
+    const stockNumber = typeof stock === 'string' ? Number(stock) : (stock ?? 0);
 
-    if (Number.isNaN(priceNumber) || priceNumber < 0) {
-      return NextResponse.json({ error: 'Invalid price' }, { status: 400 });
-    }
-    if (Number.isNaN(stockNumber) || stockNumber < 0) {
-      return NextResponse.json({ error: 'Invalid stock' }, { status: 400 });
-    }
-
-    // Ensure category exists
-    const cat = await prisma.category.findUnique({ where: { id: categoryId } });
-    if (!cat) {
-      return NextResponse.json({ error: 'Invalid category' }, { status: 400 });
-    }
-
+    // 3. Updated database creation logic
     const created = await prisma.$transaction(async (tx) => {
       const prod = await tx.product.create({
         data: {
           name: name.trim(),
+          slug: slug.trim().toLowerCase(), // 4. Saving the slug is mandatory now
           description: (description ?? '').trim(),
-          price: priceNumber, // Decimal handled by Prisma
+          price: priceNumber,
           stock: stockNumber,
-          imageUrl: imageUrl?.trim() || undefined, // optional in schema
+          imageUrl: imageUrl?.trim() || undefined,
           categoryId,
         },
       });
 
-      // Upsert and connect tags
       if (tags?.length) {
         for (const raw of tags) {
           const t = raw.trim();
@@ -99,19 +55,60 @@ export async function POST(req: Request) {
           });
         }
       }
-
       return prod;
     });
 
-    // Optional: normalize price for client
-    const normalized = {
-      ...created,
-      price: created.price?.toString?.() ?? created.price,
-    };
-
-    return NextResponse.json(normalized, { status: 201 });
+    return NextResponse.json(created, { status: 201 });
   } catch (e: any) {
-    console.error('[PRODUCT_CREATE_ERROR]', e?.message ?? e, e?.stack ?? '');
-    return NextResponse.json({ error: 'Internal' }, { status: 500 });
+    console.error('[PRODUCT_CREATE_ERROR]', e?.message);
+    // 5. Send back the specific error message to help debug (e.g., if slug is duplicate)
+    return NextResponse.json({ error: e.message || 'Internal' }, { status: 500 });
+  }
+}
+
+// Update the PATCH handler similarly to allow updating slugs
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+
+  try {
+    const body = await req.json();
+    const { name, slug, description, price, stock, imageUrl, categoryId, tags } = body;
+
+    const data: any = {};
+    if (name !== undefined) data.name = name;
+    if (slug !== undefined) data.slug = slug.trim().toLowerCase(); // 6. Allow slug updates
+    if (description !== undefined) data.description = description;
+    if (price !== undefined) data.price = Number(price);
+    if (stock !== undefined) data.stock = Number(stock);
+    if (imageUrl !== undefined) data.imageUrl = imageUrl || null;
+    if (categoryId !== undefined) data.categoryId = categoryId;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const prod = await tx.product.update({
+        where: { id: id },
+        data,
+      });
+
+      if (tags) {
+        await tx.productTag.deleteMany({ where: { productId: id } });
+        for (const tName of tags) {
+          if (!tName.trim()) continue;
+          const tag = await tx.tag.upsert({
+            where: { name: tName.trim() },
+            update: {},
+            create: { name: tName.trim() },
+          });
+          await tx.productTag.create({
+            data: { productId: id, tagId: tag.id },
+          });
+        }
+      }
+      return prod;
+    });
+
+    return NextResponse.json(updated);
+  } catch (e: any) {
+    console.error(`[PRODUCT_UPDATE_ERROR id=${id}]`, e);
+    return NextResponse.json({ error: e.message || 'Update failed' }, { status: 500 });
   }
 }

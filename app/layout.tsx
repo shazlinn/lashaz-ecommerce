@@ -1,9 +1,10 @@
 // ecommerce/app/layout.tsx
 import type { Metadata } from 'next';
-import { Poppins, Josefin_Sans, Work_Sans } from 'next/font/google'; // Combined imports
+import { Poppins, Josefin_Sans, Work_Sans } from 'next/font/google';
 import './globals.css';
 import ThemeScript from './theme-script';
 import Providers from './providers';
+import { Toaster } from 'react-hot-toast';
 
 // Main Body Font
 const poppins = Poppins({
@@ -29,23 +30,42 @@ const workSans = Work_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'SmartShop',
-  description: 'La Shaz SmartShop',
+  title: 'La Shaz',
+  description: 'La Shaz Ecommerce - Beauty & Makeup',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    /* Added both font variables to the className */
     <html 
       lang="en" 
       className={`${poppins.variable} ${josefin.variable} ${workSans.variable}`} 
-      data-theme="light"
+      suppressHydrationWarning
     >
       <head>
         <ThemeScript />
       </head>
-      <body className="antialiased font-sans">
-        <Providers>{children}</Providers>
+      <body className="antialiased font-sans bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors duration-300">
+        {/* 2. Place Toaster outside Providers but inside body */}
+        <Toaster 
+          position="bottom-right" 
+          toastOptions={{
+            // Globally set the La Shaz aesthetic
+            duration: 3000,
+            style: {
+              background: '#000',
+              color: '#fff',
+              borderRadius: '99px',
+              fontSize: '11px',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              padding: '12px 24px',
+            },
+          }} 
+        />
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
