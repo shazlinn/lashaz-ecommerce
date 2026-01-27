@@ -24,8 +24,22 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
+        
         if (!user || !user.hashedPassword) return null;
 
+        // --- TEMPORARY DEVELOPMENT BYPASS ---
+        // Since database currently stores plain text "test" instead of a hash
+        // if (user.email === 'shaz@example.com' && credentials.password === user.hashedPassword) {
+        //    return {
+        //     id: user.id,
+        //     name: user.name,
+        //     email: user.email,
+        //     role: user.role ?? 'admin',
+        //   } as any;
+        // }
+        // ------------------------------------
+
+        // Normal Bcrypt comparison for other users/production
         const ok = await bcrypt.compare(credentials.password, user.hashedPassword);
         if (!ok) return null;
 

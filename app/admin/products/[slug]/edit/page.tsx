@@ -1,15 +1,17 @@
+// lashaz-ecommerce/app/admin/products/[slug]/edit/page.tsx
 import prisma from '@/lib/prisma';
 import EditProductForm from './EditProductForm';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon, EyeIcon } from '@heroicons/react/24/outline';
 
-export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function EditProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  // 1. Unwrapping params to get the slug
+  const { slug } = await params;
 
-  // 1. Fetch product with full relations using Prisma
+  // 2. Fetch product by slug since the folder name changed to [slug]
   const product = await prisma.product.findUnique({
-    where: { id },
+    where: { slug }, // Updated from id to slug
     include: {
       category: true,
       tags: { include: { tag: true } },
@@ -18,22 +20,21 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
   if (!product) notFound();
 
-  // 2. Normalize data for the EditProductForm component
+  // 3. Normalize data for the form
   const initialData = {
     id: product.id,
+    slug: product.slug, // Pass the slug to the form
     name: product.name,
     description: product.description ?? '',
     price: product.price.toString(),
     stock: product.stock,
     categoryId: product.categoryId ?? '',
-    // imageUrl contains comma-separated URLs from UploadThing (utfs.io)
     imageUrl: product.imageUrl ?? '', 
     tags: product.tags.map(pt => pt.tag?.name).filter(Boolean).join(', '),
   };
 
   return (
     <div className="mx-auto max-w-5xl space-y-10 font-sans p-6 lg:p-0">
-      {/* Top Navigation & Brand Header */}
       <div className="flex flex-col gap-6">
         <Link 
           href="/admin/products" 
@@ -55,10 +56,11 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
 
           <div className="flex items-center gap-4">
             <p className="hidden md:block text-[10px] font-mono text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100 uppercase">
-              ID: {product.id}
+              Slug: {product.slug}
             </p>
+            {/* Updated preview link to use slug */}
             <Link 
-              href={`/product/${product.id}`}
+              href={`/product/${product.slug}`}
               target="_blank"
               className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition-all shadow-sm active:scale-95"
             >
@@ -69,7 +71,6 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      {/* Main Content Card */}
       <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-black/5 overflow-hidden">
         <div className="bg-zinc-50/50 px-8 py-4 border-b border-gray-100">
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
@@ -81,7 +82,6 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      {/* Footer Hint */}
       <p className="text-center text-xs text-gray-400 italic">
         Changes made here will update the live storefront immediately.
       </p>

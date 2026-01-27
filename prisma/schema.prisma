@@ -1,12 +1,9 @@
 // Path: prisma/schema.prisma
 
-// This specifies the Prisma Client generator.
 generator client {
   provider = "prisma-client-js"
 }
 
-// This defines the database provider.
-// NOTICE: The 'url' line is REMOVED from here. This is the main fix for the P1012 error.
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -21,18 +18,16 @@ enum UserStatus {
 // --- APPLICATION MODELS
 // ---------------------------------
 
-// Holds data for registered users (customers and admins)
 model User {
-  id             String     @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String?
-  email          String     @unique
+  email          String         @unique
   hashedPassword String
-  role           String     @default("customer") // e.g., "customer" or "admin"
-  status         UserStatus @default(active) // <--- NEW
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  role           String         @default("customer")
+  status         UserStatus     @default(active)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  // Relations
   addresses   Address[]
   orders      Order[]
   cart        Cart?
@@ -40,22 +35,22 @@ model User {
   resetTokens ResetToken[]
 }
 
-// Stores user shipping and billing addresses
 model Address {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   street     String
   city       String
   state      String
   postalCode String
   country    String
   userId     String
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Represents a product in the store
 model Product {
   id          String   @id @default(cuid())
   name        String
+  // NEW: Added slug for clean URLs (e.g., /product/velvet-lip-stain)
+  slug        String   @unique 
   description String
   price       Decimal  @db.Decimal(10, 2)
   stock       Int
@@ -64,128 +59,99 @@ model Product {
   updatedAt   DateTime @updatedAt
   categoryId  String
 
-  // Relations
-  category   Category     @relation(fields: [categoryId], references: [id])
+  category   Category    @relation(fields: [categoryId], references: [id])
   tags       ProductTag[]
   cartItems  CartItem[]
   orderItems OrderItem[]
 }
 
-// Groups products into categories like "Skincare", "Makeup"
 model Category {
-  id          String  @id @default(cuid())
-  name        String  @unique
+  id          String    @id @default(cuid())
+  name        String    @unique
   description String?
-
-  // Relations
-  products Product[]
+  products    Product[]
 }
 
-// Represents keywords to tag products for better searching
 model Tag {
-  id   String @id @default(cuid())
-  name String @unique
-
-  // Relations
+  id       String       @id @default(cuid())
+  name     String       @unique
   products ProductTag[]
 }
 
-// A join table for the many-to-many relationship between Products and Tags
 model ProductTag {
   productId String
   tagId     String
-
-  // Relations
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([productId, tagId])
 }
 
-// Stores the customer's shopping cart
 model Cart {
   id        String   @id @default(cuid())
   userId    String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // Relations
-  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items CartItem[]
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
 }
 
-// Represents a single item within a shopping cart
 model CartItem {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   quantity  Int
   cartId    String
   productId String
-
-  // Relations
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
-// Records a customer's completed order
 model Order {
-  id             String   @id @default(cuid())
-  status         String // e.g., "pending", "paid", "shipped", "delivered"
-  totalAmount    Decimal  @db.Decimal(10, 2)
+  id             String            @id @default(cuid())
+  status         String
+  totalAmount    Decimal           @db.Decimal(10, 2)
   trackingNumber String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
   userId         String
-
-  // Relations
-  user        User                @relation(fields: [userId], references: [id])
-  items       OrderItem[]
-  transaction PaymentTransaction?
+  user           User              @relation(fields: [userId], references: [id])
+  items          OrderItem[]
+  transaction    PaymentTransaction?
 }
 
-// Represents a single item within an order
 model OrderItem {
   id              String  @id @default(cuid())
   quantity        Int
   priceAtPurchase Decimal @db.Decimal(10, 2)
   orderId         String
   productId       String
-
-  // Relations
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product @relation(fields: [productId], references: [id])
 }
 
-// Logs payment details for each order
 model PaymentTransaction {
   id              String   @id @default(cuid())
   orderId         String   @unique
-  method          String // e.g., "FPX"
+  method          String
   amount          Decimal  @db.Decimal(10, 2)
-  status          String // e.g., "success", "failed"
+  status          String
   transactionDate DateTime @default(now())
-  fpxRefId        String? // Reference ID from the payment gateway
-
-  // Relations
-  order Order @relation(fields: [orderId], references: [id])
+  fpxRefId        String?
+  order           Order    @relation(fields: [orderId], references: [id])
 }
 
-// Stores questions and answers for the chatbot
 model FAQ {
   id       String  @id @default(cuid())
   question String
   answer   String
-  category String? // e.g., "shipping", "returns"
+  category String?
 }
 
-// Stores a log of chatbot interactions
 model ChatbotSession {
   id        String    @id @default(cuid())
-  userId    String? // Can be null for guest users
+  userId    String?
   startedAt DateTime  @default(now())
   endedAt   DateTime?
-
-  // Relations
-  user User? @relation(fields: [userId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
 }
 
 model ResetToken {

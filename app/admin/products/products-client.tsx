@@ -5,11 +5,14 @@ import { useMemo, useState } from 'react';
 import { Table } from '@/components/ui/Table';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+// Added icons for Edit and Delete
+import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 export type ProductRow = {
   id: string;
+  slug: string; // Added slug
   name: string;
-  price: string; // as string from server; formatted in render
+  price: string; 
   stock: number;
   category: string;
   tags: string[];
@@ -29,18 +32,19 @@ export default function ProductsClient({ initialRows }: { initialRows: ProductRo
     );
   }, [query, initialRows]);
 
-async function deleteProduct(id: string) {
-  if (!confirm('Delete this product? This will also remove it from cloud storage.')) return;
-  
-  const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-  const txt = await res.text().catch(() => '');
-  
-  if (!res.ok) {
-    alert(`Delete failed: ${res.status} ${txt}`);
-    return;
+  async function deleteProduct(id: string) {
+    if (!confirm('Delete this product? This will also remove it from cloud storage.')) return;
+    
+    // API call still uses ID as the primary identifier
+    const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+    const txt = await res.text().catch(() => '');
+    
+    if (!res.ok) {
+      alert(`Delete failed: ${res.status} ${txt}`);
+      return;
+    }
+    router.refresh();
   }
-  router.refresh();
-}
 
   return (
     <>
@@ -60,12 +64,10 @@ async function deleteProduct(id: string) {
 
       <Table headers={['', 'Name', 'Price', 'Stock', 'Category', 'Tags', '']}>
         {filtered.map((p) => {
-          // Extract the first image URL from the comma-separated string 
           const firstImage = p.imageUrl?.split(',')[0];
 
           return (
             <tr key={p.id} className="table-row">
-              {/* Thumbnail Column */}
               <td className="px-4 py-3">
                 <div 
                   className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg border bg-muted" 
@@ -114,11 +116,20 @@ async function deleteProduct(id: string) {
               </td>
               <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-2">
-                      <Link href={`/admin/products/${p.id}/edit`} className="btn-muted xs">
-                        Edit
+                      {/* Updated to use slug for the URL */}
+                      <Link 
+                        href={`/admin/products/${p.slug}/edit`} 
+                        className="btn-muted p-2 hover:text-black transition-colors"
+                        title="Edit"
+                      >
+                        <PencilSquareIcon className="h-5 w-5" />
                       </Link>
-                      <button onClick={() => deleteProduct(p.id)} className="btn-muted xs hover:bg-red-50 hover:text-red-600 transition-colors">
-                        Delete
+                      <button 
+                        onClick={() => deleteProduct(p.id)} 
+                        className="btn-muted p-2 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        title="Delete"
+                      >
+                        <TrashIcon className="h-5 w-5" />
                       </button>
                   </div>
               </td>
@@ -133,6 +144,5 @@ async function deleteProduct(id: string) {
 function formatMYR(val: string | number) {
   const num = typeof val === 'string' ? Number(val) : val;
   if (Number.isNaN(num)) return val;
-  // Standard Malaysian currency formatting
   return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR' }).format(num);
 }

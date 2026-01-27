@@ -8,7 +8,7 @@ export default function ProductCard({ product }: { product: any }) {
   const displayImage = images[0] || '/images/placeholder-makeup.png';
 
   return (
-    <Link href={`/product/${product.id}`} className="group block">
+    <Link href={`/product/${product.slug}`} className="group block">
       <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-zinc-50 mb-4 transition-transform group-hover:scale-[1.02]">
         <Image
           src={displayImage} // Now passes a single clean URL

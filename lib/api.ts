@@ -1,5 +1,9 @@
 import prisma from '@/lib/prisma';
 
+/**
+ * Fetches all products for the Shop page.
+ * Returns the unique slug for cleaner URLs.
+ */
 export async function getServerSideProducts() {
   try {
     const products = await prisma.product.findMany({
@@ -12,11 +16,11 @@ export async function getServerSideProducts() {
     return products.map((p) => ({
       id: p.id,
       name: p.name,
-      price: parseFloat(p.price.toString()),
+      price: parseFloat(p.price.toString()), // Convert Prisma Decimal to number
       category: p.category?.name ?? 'Uncategorized',
       image: p.imageUrl || '', 
       stock: p.stock,
-      slug: p.id, 
+      slug: p.slug, // Now using the actual slug from your database
     }));
   } catch (error) {
     console.error("Prisma Fetch Error (All Products):", error);
@@ -24,13 +28,17 @@ export async function getServerSideProducts() {
   }
 }
 
-export async function getServerSideProductById(id: string) {
-  // SAFETY CHECK: Ensure ID exists and is a valid string
-  if (!id || typeof id !== 'string') return null;
+/**
+ * Fetches a single product using its unique slug.
+ * Used for the /product/[slug] dynamic route.
+ */
+export async function getServerSideProductBySlug(slug: string) {
+  // SAFETY CHECK: Prevent Prisma from running if slug is missing
+  if (!slug || typeof slug !== 'string') return null;
 
   try {
     const product = await prisma.product.findUnique({
-      where: { id: id },
+      where: { slug: slug }, // Querying by slug instead of ID
       include: {
         category: { select: { name: true } },
       },
@@ -41,6 +49,7 @@ export async function getServerSideProductById(id: string) {
     return {
       id: product.id,
       name: product.name,
+      slug: product.slug,
       description: product.description ?? '',
       price: parseFloat(product.price.toString()),
       category: product.category?.name ?? 'Uncategorized',
@@ -48,7 +57,7 @@ export async function getServerSideProductById(id: string) {
       stock: product.stock,
     };
   } catch (error) {
-    console.error(`Prisma Fetch Error (Product ID: ${id}):`, error);
+    console.error(`Prisma Fetch Error (Slug: ${slug}):`, error);
     return null;
   }
 }
