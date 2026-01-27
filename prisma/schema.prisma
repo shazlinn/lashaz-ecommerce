@@ -61,24 +61,29 @@ model User {
   id             String    @id @default(cuid())
   name           String?
   email          String    @unique
-  emailVerified  DateTime? // Required by NextAuth for social login
-  image          String?   // Stores the Google profile picture
-  hashedPassword String?   // Made optional for Google/OAuth users
+  emailVerified  DateTime? 
+  image          String?   
+  hashedPassword String?   
+  
+  // NEW FIELDS FOR PROFILE EDIT
+  phone          String?   
+  address        String?   @db.Text
+  
   role           String    @default("customer")
   status         UserStatus @default(active)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   // Auth Relations
-  accounts      Account[]
-  authSessions  Session[] // Renamed to avoid conflict with ChatbotSession
+  accounts       Account[]
+  authSessions   Session[] 
   
   // App Relations
-  addresses       Address[]
-  orders          Order[]
-  cart            Cart?
+  addresses      Address[]
+  orders         Order[]
+  cart           Cart?
   chatbotSessions ChatbotSession[]
-  resetTokens     ResetToken[]
+  resetTokens    ResetToken[]
 }
 
 model Address {

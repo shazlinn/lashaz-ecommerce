@@ -6,13 +6,15 @@ import { Table } from '@/components/ui/Table';
 import type { AdminUserRow } from '@/lib/users';
 import EditUserModal from './EditUserModal';
 import NewUserModal from './NewUserModal';
+import ViewUserModal from './ViewUserModal'; 
 import { useRouter } from 'next/navigation';
 import { 
   ChevronLeftIcon, 
   ChevronRightIcon, 
   PencilSquareIcon, 
   UserMinusIcon, 
-  UserPlusIcon 
+  UserPlusIcon,
+  EyeIcon 
 } from '@heroicons/react/24/outline';
 
 export default function UsersClient({ initialRows }: { initialRows: AdminUserRow[] }) {
@@ -89,7 +91,6 @@ export default function UsersClient({ initialRows }: { initialRows: AdminUserRow
       </div>
 
       <div className="flex items-center justify-between gap-3">
-        {/* FIXED: Using the 'input' class for theme-aware visibility */}
         <input
           value={query ?? ''}
           onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }}
@@ -103,10 +104,9 @@ export default function UsersClient({ initialRows }: { initialRows: AdminUserRow
         {paginatedRows.map((u) => (
           <tr 
             key={u.id} 
-            className="table-row border-b" 
+            className="table-row border-b group/row" 
             style={{ borderColor: 'var(--border)' }}
           >
-            {/* FIXED: Using 'text-fg' for the name */}
             <td className="px-4 py-4 font-josefin font-bold uppercase text-xs tracking-tight text-fg">
               {u.name ?? '-'}
             </td>
@@ -117,8 +117,19 @@ export default function UsersClient({ initialRows }: { initialRows: AdminUserRow
                 {u.status}
               </span>
             </td>
-            <td className="px-4 py-4 w-28">
+            <td className="px-4 py-4 w-32"> {/* 3. Increased width slightly to fit three icons */}
               <div className="flex items-center gap-4">
+                {/* VIEW ACTION/route.ts] */}
+                <ViewUserModal 
+                  userId={u.id} 
+                  renderTrigger={() => (
+                    <button className="text-muted hover:text-black dark:hover:text-white transition-colors" title="View Details">
+                      <EyeIcon className="h-5 w-5" />
+                    </button>
+                  )}
+                />
+
+                {/* EDIT ACTION */}
                 <EditUserModal 
                   user={u} 
                   onUpdated={() => router.refresh()} 
@@ -128,9 +139,12 @@ export default function UsersClient({ initialRows }: { initialRows: AdminUserRow
                     </button>
                   )}
                 />
+
+                {/* STATUS TOGGLE */}
                 <button
                   onClick={() => toggleUserStatus(u.id, u.status)}
                   className={`transition-colors ${u.status === 'active' ? 'text-muted hover:text-red-500' : 'text-muted hover:text-green-600'}`}
+                  title={u.status === 'active' ? "Deactivate" : "Activate"}
                 >
                   {u.status === 'active' ? <UserMinusIcon className="h-5 w-5" /> : <UserPlusIcon className="h-5 w-5" />}
                 </button>
