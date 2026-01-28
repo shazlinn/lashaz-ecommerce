@@ -4,13 +4,17 @@ import ProductGallery from '@/components/frontstore/ProductGallery';
 import Header from '@/components/frontstore/Header';
 import Footer from '@/components/frontstore/Footer';
 import AddToCartSection from '@/components/frontstore/AddToCartSection';
-import RelatedProducts from '@/components/frontstore/RelatedProducts'; //
+import RelatedProducts from '@/components/frontstore/RelatedProducts';
+import WishlistButton from '@/components/frontstore/WishlistButton'; //
 import Link from 'next/link';
 import { ChevronLeftIcon } from '@heroicons/react/24/outline';
+import { getAuthSession } from '@/lib/auth'; //
+import prisma from '@/lib/prisma'; //
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const product = await getServerSideProductBySlug(slug);
+  const session = await getAuthSession();
 
   if (!product) {
     return (
@@ -23,6 +27,26 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
     );
   }
+
+  // Server-side check for wishlist status
+  let isWishlisted = false;
+  if (session?.user) {
+    const wishlistItem = await prisma.wishlistItem.findFirst({
+      where: {
+        productId: product.id,
+        wishlist: {
+          userId: (session.user as any).id
+        }
+      }
+    });
+    isWishlisted = !!wishlistItem;
+  }
+
+  // Convert Decimal price to Number for Client Component serialization
+  const plainProduct = {
+    ...product,
+    price: Number(product.price)
+  };
 
   return (
     <main className="min-h-screen bg-white flex flex-col font-sans">
@@ -55,8 +79,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               <h1 className="text-4xl lg:text-5xl font-bold font-josefin uppercase tracking-tight text-black leading-tight">
                 {product.name}
               </h1>
-              <p className="text-2xl font-medium text-black">MYR {product.price}</p>
+              <p className="text-2xl font-medium text-black">MYR {Number(product.price).toFixed(2)}</p>
             </header>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <WishlistButton 
+                  productId={product.id} 
+                  initialIsWishlisted={isWishlisted} 
+                />
+              </div>
 
             <div className="prose prose-zinc max-w-none border-t border-gray-100 pt-6">
               <p className="text-gray-600 leading-relaxed whitespace-pre-line text-sm">
@@ -64,7 +95,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </p>
             </div>
 
-            <AddToCartSection product={product} />
+            {/* Action Buttons: Add to Cart and Wishlist */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-grow">
+                <AddToCartSection product={plainProduct} />
+              </div>
+            </div>
 
             <div className="pt-6 border-t border-gray-100 flex items-center gap-4 text-xs">
               <span className="font-bold text-black uppercase tracking-widest">Status:</span>
@@ -76,7 +112,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
 
         {/* RELATED PRODUCTS SECTION */}
-        {/* We pass the current category and ID to filter suggestions */}
         <RelatedProducts 
           currentProductId={product.id} 
           categoryName={product.category} 

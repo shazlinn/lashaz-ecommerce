@@ -1,10 +1,11 @@
-// ecommerce/app/layout.tsx
+// lashaz-ecommerce/app/layout.tsx
 import type { Metadata } from 'next';
 import { Poppins, Josefin_Sans, Work_Sans } from 'next/font/google';
 import './globals.css';
 import ThemeScript from './theme-script';
 import Providers from './providers';
 import { Toaster } from 'react-hot-toast';
+import ChatWidget from '@/components/frontstore/ChatWidget'; //
 
 // Main Body Font
 const poppins = Poppins({
@@ -45,11 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeScript />
       </head>
       <body className="antialiased font-sans bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors duration-300">
-        {/* 2. Place Toaster outside Providers but inside body */}
         <Toaster 
           position="bottom-right" 
           toastOptions={{
-            // Globally set the La Shaz aesthetic
             duration: 3000,
             style: {
               background: '#000',
@@ -65,6 +64,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <Providers>
           {children}
+          
+          {/* THE BEAUTY ASSISTANT */}
+          {/* Placing it here ensures it floats above all page content */}
+          <ChatWidget /> 
         </Providers>
       </body>
     </html>

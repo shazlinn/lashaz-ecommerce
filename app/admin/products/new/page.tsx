@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUploadThing } from '@/lib/uploadthing';
-import { slugify } from '@/lib/utils'; // Import your new helper
+import { slugify } from '@/lib/utils';
 import { ArrowLeftIcon, PhotoIcon } from '@heroicons/react/24/outline';
 
 export default function NewProductPage() {
@@ -18,12 +18,13 @@ export default function NewProductPage() {
 
   const [form, setForm] = useState({
     name: '',
-    slug: '', // NEW: Added slug field to state
+    slug: '',
     description: '',
     price: '',
     stock: 0,
     categoryId: '',
     tags: '',
+    skinType: '', //
   });
 
   const { startUpload } = useUploadThing("productImage");
@@ -37,13 +38,12 @@ export default function NewProductPage() {
       });
   }, []);
 
-  // Handler to update name and slug simultaneously
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
     setForm({
       ...form,
       name: newName,
-      slug: slugify(newName) // Real-time slug generation
+      slug: slugify(newName)
     });
   };
 
@@ -73,6 +73,7 @@ export default function NewProductPage() {
           ...form,
           price: Number(form.price),
           imageUrl: finalUrls,
+          skinType: form.skinType, //
           tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
         }),
       });
@@ -88,7 +89,6 @@ export default function NewProductPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 font-sans p-6 lg:p-0">
-      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-100 pb-8">
         <div className="space-y-1">
           <Link href="/admin/products" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors w-fit">
@@ -107,28 +107,23 @@ export default function NewProductPage() {
       {error && <div className="rounded-[1rem] bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-100 animate-in fade-in">{error}</div>}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Left Column: Core Product Content */}
         <div className="lg:col-span-2 space-y-8">
           <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm space-y-6">
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 border-b border-gray-50 pb-4">Product Details</h3>
-            
             <div className="space-y-4">
               <input 
                 className="input w-full py-4 text-lg font-medium focus:ring-1 focus:ring-black" 
-                placeholder="Name your product (e.g., Velvet Blusher)" 
+                placeholder="Name your product" 
                 value={form.name} 
-                onChange={handleNameChange} // Logic for auto-slug
+                onChange={handleNameChange}
               />
-              
-              {/* URL Preview Logic */}
               <div className="flex items-center gap-2 bg-zinc-50 px-4 py-2 rounded-lg border border-gray-100">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">URL Path:</span>
                 <span className="text-xs text-gray-500 font-mono italic">/product/{form.slug || '...'}</span>
               </div>
-
               <textarea 
                 className="input w-full h-40 py-4 resize-none" 
-                placeholder="Tell the story of this beauty essential..." 
+                placeholder="Description..." 
                 value={form.description} 
                 onChange={e => setForm({...form, description: e.target.value})} 
               />
@@ -140,7 +135,7 @@ export default function NewProductPage() {
             <div className="relative border-2 border-dashed border-gray-100 rounded-2xl p-8 text-center hover:bg-zinc-50 transition-colors cursor-pointer group">
               <input type="file" multiple accept="image/*" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
               <PhotoIcon className="h-10 w-10 mx-auto text-gray-300 group-hover:text-black transition-colors" />
-              <p className="mt-2 text-sm text-gray-400">Click to upload product images</p>
+              <p className="mt-2 text-sm text-gray-400">Upload product images</p>
             </div>
             <div className="flex flex-wrap gap-4 mt-4">
               {previews.map((src, i) => (
@@ -163,20 +158,31 @@ export default function NewProductPage() {
           </section>
         </div>
 
-        {/* Right Column: Taxonomy & Sorting */}
         <div className="space-y-8">
           <section className="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm space-y-6">
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-black/40 border-b border-gray-50 pb-4">Taxonomy</h3>
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Collection / Category</label>
+                <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Collection</label>
                 <select className="input w-full py-3" value={form.categoryId} onChange={e => setForm({...form, categoryId: e.target.value})}>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
+
+              {/* */}
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Tags (Comma Separated)</label>
-                <input className="input w-full py-3" placeholder="e.g. Vegan, Limited Edition" value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} />
+                <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Skin Compatibility</label>
+                <select className="input w-full py-3" value={form.skinType} onChange={e => setForm({...form, skinType: e.target.value})}>
+                  <option value="">None / Universal</option>
+                  <option value="Oily">Oily Skin</option>
+                  <option value="Dry">Dry Skin</option>
+                  <option value="Combination">Combination Skin</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest">Tags (CSV)</label>
+                <input className="input w-full py-3" placeholder="Vegan, Cool" value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} />
               </div>
             </div>
           </section>

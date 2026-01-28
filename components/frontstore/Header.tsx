@@ -5,20 +5,20 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
-import { useCart } from '@/app/context/CartContext'; // 1. IMPORT THIS
+import { useCart } from '@/app/context/CartContext';
 import {
   MagnifyingGlassIcon,
   ShoppingBagIcon,
   UserCircleIcon,
+  HeartIcon, //
 } from '@heroicons/react/24/outline';
 import AuthModal from './AuthModal';
 
 export default function Header() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const { data: session } = useSession();
-  const { cart } = useCart(); // 2. GET CART STATE
+  const { cart } = useCart();
 
-  // 3. Calculate total quantity of items
   const itemCount = cart.reduce((total: number, item: any) => total + item.quantity, 0);
 
   return (
@@ -34,6 +34,12 @@ export default function Header() {
               <Link href="/shop" className="hover:text-black transition-colors">Shop</Link>
               <Link href="/sale" className="hover:text-black transition-colors">On Sale</Link>
               <Link href="/new-arrivals" className="hover:text-black transition-colors">New Arrivals</Link>
+              {/* SHADE FINDER LINK */}
+              <Link href="/shade-finder" className="relative group flex items-center gap-1.5 hover:text-black transition-colors">
+                Shade Finder
+                <span className="flex h-1.5 w-1.5 rounded-full bg-black group-hover:scale-125 transition-transform" />
+                <span className="absolute -top-4 -right-2 text-[8px] font-bold uppercase tracking-tighter text-zinc-400">New</span>
+              </Link>
             </nav>
           </div>
 
@@ -44,22 +50,43 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-6 text-gray-800">
-            {/* 4. UPDATED CART ICON WITH BADGE */}
-            <Link href="/cart" aria-label="Cart" className="hover:text-black transition-colors relative">
+            {/* 1. WISHLIST ICON (Only show for logged-in users) */}
+            {session && (
+              <Link 
+                href="/wishlist" 
+                aria-label="Wishlist" 
+                className="hover:text-black transition-colors p-1"
+                title="My Wishlist"
+              >
+                <HeartIcon className="h-6 w-6" />
+              </Link>
+            )}
+
+            {/* 2. CART ICON WITH BADGE */}
+            <Link href="/cart" aria-label="Cart" className="hover:text-black transition-colors relative p-1">
               <ShoppingBagIcon className="h-6 w-6" />
               {itemCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-black text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-in fade-in zoom-in duration-300">
+                <span className="absolute top-0 right-0 bg-black text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-in fade-in zoom-in duration-300">
                   {itemCount}
                 </span>
               )}
             </Link>
 
+            {/* 3. USER ICON / AUTH MODAL */}
             {session ? (
-              <Link href={session.user.role === 'admin' ? '/admin' : '/profile'}>
+              <Link 
+                href={session.user.role === 'admin' ? '/admin' : '/profile'}
+                className="hover:text-black transition-colors p-1"
+              >
                 <UserCircleIcon className="h-6 w-6" />
               </Link>
             ) : (
-              <button onClick={() => setIsAuthOpen(true)}><UserCircleIcon className="h-6 w-6" /></button>
+              <button 
+                onClick={() => setIsAuthOpen(true)}
+                className="hover:text-black transition-colors p-1"
+              >
+                <UserCircleIcon className="h-6 w-6" />
+              </button>
             )}
           </div>
         </div>

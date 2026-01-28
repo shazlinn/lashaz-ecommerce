@@ -65,7 +65,6 @@ model User {
   image          String?   
   hashedPassword String?   
   
-  // NEW FIELDS FOR PROFILE EDIT
   phone          String?   
   address        String?   @db.Text
   
@@ -82,6 +81,7 @@ model User {
   addresses      Address[]
   orders         Order[]
   cart           Cart?
+  wishlist        Wishlist? 
   chatbotSessions ChatbotSession[]
   resetTokens    ResetToken[]
 }
@@ -100,19 +100,43 @@ model Address {
 model Product {
   id          String   @id @default(cuid())
   name        String
-  slug        String   @unique // Used for clean URLs in La Shaz
+  slug        String   @unique 
   description String
   price       Decimal  @db.Decimal(10, 2)
   stock       Int
   imageUrl    String?
+  
+  skinType    String?  // Store values like "Oily", "Dry", or "Combination"
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   categoryId  String
 
-  category   Category    @relation(fields: [categoryId], references: [id])
-  tags       ProductTag[]
-  cartItems  CartItem[]
-  orderItems OrderItem[]
+  category      Category       @relation(fields: [categoryId], references: [id])
+  tags          ProductTag[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  wishlistItems WishlistItem[] 
+}
+
+// NEW WISHLIST MODELS
+model Wishlist {
+  id        String         @id @default(cuid())
+  userId    String         @unique
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  productId  String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, productId]) // Prevents saving the same item twice
 }
 
 model Category {
@@ -153,7 +177,7 @@ model CartItem {
   productId String
   cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  // duplicate rows for the same product in one cart
+  
   @@unique([cartId, productId])
 }
 
