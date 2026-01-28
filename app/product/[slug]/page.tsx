@@ -4,8 +4,9 @@ import ProductGallery from '@/components/frontstore/ProductGallery';
 import Header from '@/components/frontstore/Header';
 import Footer from '@/components/frontstore/Footer';
 import AddToCartSection from '@/components/frontstore/AddToCartSection';
-import Link from 'next/link'; //
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'; //
+import RelatedProducts from '@/components/frontstore/RelatedProducts'; //
+import Link from 'next/link';
+import { ChevronLeftIcon } from '@heroicons/react/24/outline';
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -73,6 +74,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
           </section>
         </div>
+
+        {/* RELATED PRODUCTS SECTION */}
+        {/* We pass the current category and ID to filter suggestions */}
+        <RelatedProducts 
+          currentProductId={product.id} 
+          categoryName={product.category} 
+        />
       </div>
 
       <Footer />
