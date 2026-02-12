@@ -5,7 +5,7 @@ import './globals.css';
 import ThemeScript from './theme-script';
 import Providers from './providers';
 import { Toaster } from 'react-hot-toast';
-import ChatWidget from '@/components/frontstore/ChatWidget'; //
+import ChatWidget from '@/components/frontstore/ChatWidget';
 
 // Main Body Font
 const poppins = Poppins({
@@ -40,12 +40,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html 
       lang="en" 
       className={`${poppins.variable} ${josefin.variable} ${workSans.variable}`} 
-      suppressHydrationWarning
+      suppressHydrationWarning // Essential for Next.js hydration stability
     >
       <head>
         <ThemeScript />
       </head>
-      <body className="antialiased font-sans bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors duration-300">
+      {/* Adding suppressHydrationWarning here solves the specific 
+          error caused by extensions like Grammarly injecting data-attributes.
+      */}
+      <body 
+        suppressHydrationWarning
+        className="antialiased font-sans bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors duration-300"
+      >
         <Toaster 
           position="bottom-right" 
           toastOptions={{
@@ -65,8 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           {children}
           
-          {/* THE BEAUTY ASSISTANT */}
-          {/* Placing it here ensures it floats above all page content */}
+          {/* The Virtual Beauty Consultant floats above all page content */}
           <ChatWidget /> 
         </Providers>
       </body>

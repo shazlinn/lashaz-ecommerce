@@ -59,6 +59,9 @@ NEXTAUTH_URL="http://localhost:3000"
 OPENAI_API_KEY="your-openai-api-key"
 UPLOADTHING_SECRET="your-uploadthing-secret"
 UPLOADTHING_APP_ID="your-uploadthing-app-id"
+GROQ_API_KEY="gsk_your_groq_key" 
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+RESEND_API_KEY=re_your_api_key_here
 
 4. Setup database
 npx prisma generate
