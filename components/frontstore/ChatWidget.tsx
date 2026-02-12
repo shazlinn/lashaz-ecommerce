@@ -3,7 +3,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// Import ReactMarkdown for parsing bolding and lists
 import ReactMarkdown from 'react-markdown';
 import { 
   ChatBubbleLeftRightIcon, 
@@ -92,20 +91,27 @@ export default function ChatWidget() {
             exit={{ opacity: 0, y: 40, scale: 0.9, filter: 'blur(10px)' }}
             className="mb-6 w-[350px] md:w-[420px] h-[600px] bg-white/90 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl border border-white/40 overflow-hidden flex flex-col ring-1 ring-black/5"
           >
-            {/* Header */}
-            <div className="bg-black p-8 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent rounded-full -mr-16 -mt-16 blur-3xl" />
+            {/* Header: Refined Glow Theme */}
+            <div className="bg-[#F3E9DC] p-8 text-zinc-900 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full -mr-16 -mt-16 blur-3xl" />
               <div className="flex justify-between items-center relative z-10">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
-                    <SparklesIcon className="h-6 w-6 text-amber-300" />
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-black/5 backdrop-blur-md rounded-2xl flex items-center justify-center border border-black/5">
+                      <SparklesIcon className="h-6 w-6 text-[#D4AF37]" /> {/* Luxury Gold Sparkle */}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-[3px] border-[#F3E9DC]" />
                   </div>
                   <div>
-                    <h3 className="font-josefin font-bold uppercase tracking-[0.25em] text-[10px]">La Shaz</h3>
-                    <p className="text-[8px] opacity-40 uppercase tracking-[0.15em] mt-1 font-semibold">Virtual Identity Protocol</p>
+                    <h3 className="font-josefin font-bold uppercase tracking-[0.25em] text-[10px] text-black">La Shaz</h3>
+                    <p className="text-[8px] opacity-60 uppercase tracking-[0.15em] mt-1 font-semibold">Virtual Identity Protocol</p>
                   </div>
                 </div>
-                <button type="button" onClick={() => setIsOpen(false)} className="p-2.5 hover:bg-white/10 rounded-full transition-all">
+                <button 
+                  type="button" 
+                  onClick={() => setIsOpen(false)} 
+                  className="p-2.5 hover:bg-black/5 rounded-full transition-all text-zinc-500 hover:text-black"
+                >
                   <XMarkIcon className="h-5 w-5" />
                 </button>
               </div>
@@ -125,10 +131,9 @@ export default function ChatWidget() {
                         ? 'bg-black text-white rounded-[1.6rem] rounded-tr-none shadow-xl' 
                         : 'bg-white text-zinc-700 rounded-[1.6rem] rounded-tl-none border border-zinc-100 shadow-sm'}`}
                     >
-                    {/* Wrap in a div to handle styling, solving the className TS error */}
                     <div className="prose prose-zinc prose-sm max-w-none prose-strong:font-bold prose-strong:text-current">
                         <ReactMarkdown>
-                        {m.content}
+                          {m.content}
                         </ReactMarkdown>
                     </div>
                 </div>
@@ -199,6 +204,7 @@ export default function ChatWidget() {
         )}
       </AnimatePresence>
 
+      {/* Floating Trigger Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
