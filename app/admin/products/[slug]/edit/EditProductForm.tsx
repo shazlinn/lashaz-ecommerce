@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUploadThing } from '@/lib/uploadthing';
-import { ArrowLeftIcon, ArrowRightIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ArrowRightIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 type EditProductFormProps = {
   product: {
@@ -15,7 +15,7 @@ type EditProductFormProps = {
     stock: number;
     categoryId: string;
     imageUrl: string;
-    skinType: string; //
+    skinType: string;
     tags: string;
   };
 };
@@ -36,15 +36,36 @@ export default function EditProductForm({ product }: EditProductFormProps) {
     stock: product.stock,
     categoryId: product.categoryId,
     imageUrl: product.imageUrl, 
-    skinType: product.skinType, //
+    skinType: product.skinType,
     tags: product.tags,
   });
 
   const { startUpload } = useUploadThing("productImage");
 
   useEffect(() => {
+    return () => {
+      previews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
+
+  useEffect(() => {
     fetch('/api/admin/categories').then((res) => res.json()).then((data) => setCategories(data));
   }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    setFilesToUpload(prev => [...prev, ...selected]);
+    
+    // Create instant local previews
+    const newPreviews = selected.map((file) => URL.createObjectURL(file));
+    setPreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const removePendingImage = (index: number) => {
+    URL.revokeObjectURL(previews[index]); 
+    setPreviews(prev => prev.filter((_, i) => i !== index));
+    setFilesToUpload(prev => prev.filter((_, i) => i !== index));
+  };
 
   const moveImage = (index: number, direction: 'left' | 'right') => {
     const images = form.imageUrl.split(',').filter(Boolean);
@@ -56,15 +77,9 @@ export default function EditProductForm({ product }: EditProductFormProps) {
     setForm({ ...form, imageUrl: images.join(',') });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = Array.from(e.target.files || []);
-    setFilesToUpload(selected);
-    setPreviews(selected.map((file) => URL.createObjectURL(file)));
-  };
-
   const removeExistingImage = async (urlToRemove: string) => {
     const fileKey = urlToRemove.split("/").pop();
-    if (!fileKey || !confirm("Delete image?")) return;
+    if (!fileKey || !confirm("Permanently delete this image from storage?")) return;
     setDeletingId(urlToRemove);
     try {
       const res = await fetch("/api/admin/uploadthing/delete", {
@@ -99,12 +114,15 @@ export default function EditProductForm({ product }: EditProductFormProps) {
           ...form,
           price: Number(form.price),
           imageUrl: finalUrls,
-          skinType: form.skinType, //
+          skinType: form.skinType,
           tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
         }),
       });
 
-      if (res.ok) { router.refresh(); router.push('/admin/products'); }
+      if (res.ok) { 
+        router.refresh(); 
+        router.push('/admin/products'); 
+      }
       else setError(await res.text());
     } catch (e: any) { setError(e.message); } finally { setLoading(false); }
   }
@@ -114,6 +132,7 @@ export default function EditProductForm({ product }: EditProductFormProps) {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 font-sans">
       <div className="lg:col-span-2 space-y-6">
+        {/* Product Info Section */}
         <div className="card space-y-4 shadow-sm bg-white p-6 rounded-[2rem] border border-gray-100">
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">Product Information</h3>
           <div className="space-y-2">
@@ -126,28 +145,48 @@ export default function EditProductForm({ product }: EditProductFormProps) {
           </div>
         </div>
 
+        {/* Media Gallery Section */}
         <div className="card space-y-4 shadow-sm bg-white p-6 rounded-[2rem] border border-gray-100">
           <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">Media Gallery</h3>
-          <div className="border-2 border-dashed border-gray-100 rounded-2xl p-8 text-center bg-zinc-50/50 hover:bg-zinc-50 cursor-pointer relative group">
-            <input type="file" id="file-upload" multiple accept="image/*" onChange={handleFileChange} className="hidden" />
-            <label htmlFor="file-upload" className="cursor-pointer text-sm text-black font-bold uppercase tracking-widest hover:underline">Add new images</label>
-          </div>
-          <div className="flex flex-wrap gap-4">
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {existingImages.map((src, i) => (
-              <div key={i} className="relative group h-28 w-28">
+              <div key={`existing-${i}`} className="relative group h-28 w-28">
                 <img src={src} className={`h-full w-full rounded-2xl border object-cover ${deletingId === src ? 'opacity-30' : ''}`} />
                 <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
                   <div className="flex gap-2">
-                    {i > 0 && <button onClick={() => moveImage(i, 'left')} className="p-1.5 bg-white rounded-full text-black hover:scale-110"><ArrowLeftIcon className="h-3 w-3" /></button>}
-                    {i < existingImages.length - 1 && <button onClick={() => moveImage(i, 'right')} className="p-1.5 bg-white rounded-full text-black hover:scale-110"><ArrowRightIcon className="h-3 w-3" /></button>}
+                    {i > 0 && <button onClick={() => moveImage(i, 'left')} className="p-1 bg-white rounded-full text-black hover:scale-110"><ArrowLeftIcon className="h-3 w-3" /></button>}
+                    {i < existingImages.length - 1 && <button onClick={() => moveImage(i, 'right')} className="p-1 bg-white rounded-full text-black hover:scale-110"><ArrowRightIcon className="h-3 w-3" /></button>}
                   </div>
-                  <button onClick={() => removeExistingImage(src)} className="p-1.5 bg-red-500 text-white rounded-full"><TrashIcon className="h-3 w-3" /></button>
+                  <button onClick={() => removeExistingImage(src)} className="p-1 bg-red-500 text-white rounded-full hover:bg-red-600"><TrashIcon className="h-3 w-3" /></button>
                 </div>
               </div>
             ))}
+
+            {/* New Previews */}
+            {previews.map((src, i) => (
+              <div key={`preview-${i}`} className="relative h-28 w-28">
+                <img src={src} className="h-full w-full rounded-2xl border border-zinc-200 border-dashed object-cover opacity-70" />
+                <div className="absolute -top-2 -right-2">
+                  <button onClick={() => removePendingImage(i)} className="p-1 bg-black text-white rounded-full shadow-lg">
+                    <XMarkIcon className="h-3 w-3" />
+                  </button>
+                </div>
+                <div className="absolute bottom-2 left-0 right-0 text-center">
+                  <span className="text-[8px] font-bold uppercase bg-white/80 px-2 py-0.5 rounded-full text-black tracking-tighter">Pending</span>
+                </div>
+              </div>
+            ))}
+
+            {/* Upload Trigger */}
+            <label className="flex flex-col items-center justify-center h-28 w-28 border-2 border-dashed border-gray-100 rounded-2xl bg-zinc-50/50 hover:bg-zinc-100 cursor-pointer transition-colors group">
+              <input type="file" multiple accept="image/*" onChange={handleFileChange} className="hidden" />
+              <span className="text-[8px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-black">Add Media</span>
+            </label>
           </div>
         </div>
 
+        {/* Pricing & Stock Section */}
         <div className="card grid grid-cols-2 gap-8 shadow-sm bg-white p-6 rounded-[2rem] border border-gray-100">
            <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase text-gray-400 tracking-widest">Price (MYR)</label>
@@ -170,7 +209,6 @@ export default function EditProductForm({ product }: EditProductFormProps) {
             </select>
           </div>
 
-          {/* */}
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase text-gray-400">Skin Compatibility</label>
             <select className="input w-full" value={form.skinType} onChange={e => setForm({...form, skinType: e.target.value})}>
