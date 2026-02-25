@@ -1,7 +1,7 @@
 // lashaz-ecommerce/app/profile/page.tsx
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/prisma'; //
+import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import LogoutButton from '@/components/frontstore/LogoutButton';
 import InvoiceButton from '@/components/frontstore/InvoiceButton'; 
@@ -10,7 +10,9 @@ import {
   ArrowTopRightOnSquareIcon, 
   ShieldCheckIcon,
   PencilSquareIcon,
-  ShoppingBagIcon 
+  ShoppingBagIcon,
+  TruckIcon, 
+  ArrowRightIcon 
 } from '@heroicons/react/24/outline';
 
 export default async function ProfilePage() {
@@ -19,16 +21,17 @@ export default async function ProfilePage() {
   
   if (!session) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 font-sans text-center">
-        <h1 className="text-3xl font-bold font-josefin uppercase tracking-tight">Access Denied</h1>
-        <Link href="/login" className="mt-6 inline-block bg-black text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest text-xs transition-transform active:scale-95">
+      <div className="mx-auto max-w-3xl px-4 py-32 font-sans text-center space-y-6">
+        <h1 className="text-3xl font-bold font-josefin uppercase tracking-tight">Identity Required</h1>
+        <p className="text-zinc-400 text-sm italic">Please sign in to view your beauty manifest.</p>
+        <Link href="/login" className="inline-block bg-black text-white px-10 py-4 rounded-full font-bold uppercase tracking-widest text-[10px] transition-transform active:scale-95">
           Sign In
         </Link>
       </div>
     );
   }
 
-  // 1. Fetch fresh User data to get phone and address details
+  // Fetching fresh User data
   const userData = await prisma.user.findUnique({
     where: { id: sessionUser.id },
     select: {
@@ -40,12 +43,12 @@ export default async function ProfilePage() {
     }
   });
 
-  // 2. Fetch User's Orders
+  // Fetching User's Orders with associated items
   const orders = await prisma.order.findMany({
     where: { userId: sessionUser.id },
     select: {
       id: true,
-      total: true, // Standardized name in schema
+      total: true, 
       status: true,
       createdAt: true,
       items: {
@@ -74,7 +77,7 @@ export default async function ProfilePage() {
       <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold font-josefin uppercase tracking-tight text-black">Your Account</h1>
-          <p className="text-gray-400 mt-2">Manage your personal details and history.</p>
+          <p className="text-gray-400 mt-2">Manage your personal details and beauty history.</p>
         </div>
 
         <div className="flex gap-3">
@@ -112,7 +115,6 @@ export default async function ProfilePage() {
             </div>
           </div>
 
-          {/* Contact & Shipping Details */}
           <div className="grid md:grid-cols-2 gap-10 pt-8 border-t border-gray-50">
              <div className="grid gap-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Mobile Contact</span>
@@ -150,7 +152,6 @@ export default async function ProfilePage() {
           ) : (
             <div className="space-y-3">
               {orders.map((order) => {
-                // Sanitize to remove non-serializable Decimal objects
                 const plainOrder = {
                   ...order,
                   total: Number(order.total),
@@ -158,20 +159,19 @@ export default async function ProfilePage() {
                   items: order.items.map((item: any) => ({
                     ...item,
                     price: Number(item.price),
-                    product: {
-                      ...item.product,
-                      price: Number(item.product.price)
-                    }
+                    product: { ...item.product, price: Number(item.product.price) }
                   }))
                 };
 
                 return (
-                  <div key={order.id} className="rounded-3xl border border-zinc-100 bg-white p-6 flex justify-between items-center group hover:border-zinc-300 transition-all">
-                    <div>
+                  <div key={order.id} className="rounded-3xl border border-zinc-100 bg-white p-6 flex flex-col md:flex-row justify-between items-center gap-4 group hover:border-black transition-all duration-500">
+                    <div className="flex-1 w-full">
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] font-bold font-mono text-zinc-400">#{order.id.slice(-6).toUpperCase()}</span>
-                        <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                          order.status === 'DELIVERED' ? 'bg-zinc-100 text-zinc-500' : 'bg-black text-white'
+                        <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                          order.status === 'PAID' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                          order.status === 'SHIPPED' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                          'bg-zinc-50 text-zinc-500 border-zinc-100'
                         }`}>
                           {order.status}
                         </span>
@@ -181,12 +181,24 @@ export default async function ProfilePage() {
                       </p>
                     </div>
                     
-                    <div className="flex items-center gap-4">
-                      <span className="text-[12px] font-bold">
+                    <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto">
+                      <span className="text-[12px] font-bold whitespace-nowrap">
                         RM {Number(order.total).toFixed(2)}
                       </span>
-                      {/* Pass the plain object to the Client Component */}
-                      <InvoiceButton order={plainOrder} /> 
+                      
+                      <div className="flex items-center gap-3">
+                        {/* 1. Direct Tracking Link */}
+                        <Link 
+                          href={`/track/${order.id}`}
+                          className="flex items-center gap-2 bg-black text-white px-5 py-3 rounded-2xl text-[9px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-95 shadow-sm"
+                        >
+                          <TruckIcon className="h-3 w-3" />
+                          Track Glow
+                        </Link>
+                        
+                        {/* 2. Invoice Generation */}
+                        <InvoiceButton order={plainOrder} /> 
+                      </div>
                     </div>
                   </div>
                 );
@@ -194,6 +206,12 @@ export default async function ProfilePage() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-20 pt-10 border-t border-gray-100 text-center">
+        <p className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">
+          La Shaz © 2026 — Built with Authentic Precision
+        </p>
       </div>
     </div>
   );
