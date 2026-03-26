@@ -4,18 +4,23 @@ type TableProps = {
   children: React.ReactNode;
 };
 
-export function Table({ headers, children }: TableProps) {
+export function Table({ headers, children }: { headers: string[], children: React.ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200">
-      <table className="min-w-full text-left text-sm">
-        <thead className="bg-zinc-50 text-zinc-600">
+    <div className="w-full overflow-x-auto rounded-lg border" style={{ borderColor: 'var(--border)' }}>
+      <table className="w-full text-left text-sm">
+        <thead className="border-b bg-muted/50 text-muted" style={{ borderColor: 'var(--border)' }}>
           <tr>
-            {headers.map((h) => (
-              <th key={h} className="px-4 py-3 font-medium">{h}</th>
+            {headers.map((h, index) => (
+              // Use a combination of the string and index to ensure uniqueness
+              <th key={`${h}-${index}`} className="px-4 py-3 font-medium">
+                {h}
+              </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-zinc-100">{children}</tbody>
+        <tbody className="divide-y" style={{ borderColor: 'var(--border)' }}>
+          {children}
+        </tbody>
       </table>
     </div>
   );

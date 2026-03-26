@@ -1,87 +1,39 @@
-// app/admin/orders/page.tsx
-"use client";
+// lashaz-ecommerce/app/admin/orders/page.tsx
+import prisma from '@/lib/prisma';
+import OrdersClient from './orders-client';
 
-import { useState } from "react";
-import { PageHeader } from "@/components/admin/PageHeader";
-import { Table } from "@/components/ui/Table";
+export default async function AdminOrdersPage() {
+  // Fetch orders with related user and item data
+  const orders = await prisma.order.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: {
+      user: { select: { name: true, email: true } },
+      items: { include: { product: { select: { name: true } } } }
+    },
+  });
 
-type OrderRow = {
-  id: string;
-  customer: string;
-  total: string;
-  status: "pending" | "paid" | "shipped";
-  date: string;
-  tracking?: string;
-};
-
-const MOCK: OrderRow[] = [
-  { id: "ord_1", customer: "Amina", total: "RM 89.00", status: "paid", date: "2025-06-23", tracking: "MY123" },
-  { id: "ord_2", customer: "Farah", total: "RM 55.00", status: "pending", date: "2025-06-22" },
-];
-
-export default function OrdersPage() {
-  const [status, setStatus] = useState<"" | OrderRow["status"]>("");
-
-  const filtered = MOCK.filter((o) => (status ? o.status === status : true));
+  const rows = orders.map((o) => ({
+    id: o.id,
+    customerName: o.user?.name ?? 'Unknown',
+    customerEmail: o.user?.email ?? '-',
+    total: Number(o.total), // Handle Decimal conversion
+    status: o.status as 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED',
+    createdAt: o.createdAt.toISOString(),
+    items: o.items.map(i => i.product.name),
+  }));
 
   return (
-    <section>
-      <PageHeader
-        title="Orders"
-        subtitle="View, update status, and add tracking"
-      />
-      <div className="mb-3 flex gap-2">
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as any)}
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
-        >
-          <option value="">All statuses</option>
-          <option value="pending">Pending</option>
-          <option value="paid">Paid</option>
-          <option value="shipped">Shipped</option>
-        </select>
-        <button className="rounded-md border border-zinc-300 px-3 py-2 text-sm">
-          Export
-        </button>
+    <section className="space-y-6 font-sans">
+      <div className="flex flex-col gap-2 border-b border-gray-100 pb-6">
+        <h1 className="text-3xl font-bold font-josefin uppercase tracking-tight text-black">
+          Order Ledger
+        </h1>
+        <p className="text-sm text-gray-500">
+          Manage customer fulfillment, track logistics, and generate identity invoices.
+        </p>
       </div>
 
-      <Table headers={["Order ID", "Customer", "Total", "Status", "Date", "Tracking", ""]}>
-        {filtered.map((o) => (
-          <tr key={o.id}>
-            <td className="px-4 py-3 font-medium">{o.id}</td>
-            <td className="px-4 py-3">{o.customer}</td>
-            <td className="px-4 py-3">{o.total}</td>
-            <td className="px-4 py-3">
-              <StatusPill status={o.status} />
-            </td>
-            <td className="px-4 py-3">{o.date}</td>
-            <td className="px-4 py-3">{o.tracking ?? "-"}</td>
-            <td className="px-4 py-3 text-right">
-              <div className="flex justify-end gap-2">
-                <button className="rounded-md border border-zinc-300 px-2 py-1 text-xs">
-                  View
-                </button>
-                <button className="rounded-md border border-zinc-300 px-2 py-1 text-xs">
-                  Update
-                </button>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </Table>
+      <OrdersClient initialRows={rows} />
     </section>
-  );
-}
-
-function StatusPill({ status }: { status: OrderRow["status"] }) {
-  const styles =
-    status === "pending"
-      ? "bg-yellow-100 text-yellow-700"
-      : status === "paid"
-      ? "bg-emerald-100 text-emerald-700"
-      : "bg-blue-100 text-blue-700";
-  return (
-    <span className={`rounded-full px-2 py-1 text-xs ${styles}`}>{status}</span>
   );
 }

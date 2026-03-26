@@ -43,7 +43,7 @@ export default function NewUserModal({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md bg-zinc-900 px-3 py-2 text-white"
+        className="btn-secondary"
       >
         New User
       </button>
