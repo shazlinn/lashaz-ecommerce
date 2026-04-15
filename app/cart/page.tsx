@@ -17,7 +17,7 @@ export default function CartPage() {
   const { cart, removeFromCart, updateQuantity } = useCart();
 
   const subtotal = cart.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
-  const shipping = subtotal > 200 ? 0 : 15;
+  const shipping = subtotal > 200 ? 0 : 10;
   const total = subtotal + shipping;
 
   if (cart.length === 0) {
