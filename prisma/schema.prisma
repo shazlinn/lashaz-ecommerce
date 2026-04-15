@@ -197,6 +197,7 @@ model Order {
   trackingNumber  String?
   
   // 3. ADDED: To track the ToyyibPay transaction reference
+  paymentReason     String? 
   toyyibPayBillCode String?   @unique
 
   createdAt       DateTime    @default(now())

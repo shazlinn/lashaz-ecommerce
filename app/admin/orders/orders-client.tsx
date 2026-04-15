@@ -13,7 +13,8 @@ import {
   EyeIcon,
   XMarkIcon,
   EnvelopeIcon,
-  ClipboardIcon // New icon for copying tracking ID
+  ClipboardIcon,
+  InformationCircleIcon // Added for the reason tooltip/icon
 } from '@heroicons/react/24/outline';
 
 export type OrderRow = {
@@ -21,8 +22,9 @@ export type OrderRow = {
   customerName: string;
   customerEmail: string;
   total: number;
-  status: 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-  trackingNumber?: string | null; // Added to sync with updated Prisma schema
+  status: 'PAID' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'PENDING';
+  trackingNumber?: string | null;
+  paymentReason?: string | null; // Added to sync with Webhook updates
   createdAt: string;
   items: string[];
 };
@@ -41,7 +43,6 @@ export default function OrdersClient({ initialRows }: { initialRows: OrderRow[] 
     );
   }, [query, initialRows]);
 
-  // Captures and transmits tracking ID to the backend
   const updateStatus = async (orderId: string, userEmail: string, newStatus: string) => {
     let trackingNumber = "";
 
@@ -86,7 +87,6 @@ export default function OrdersClient({ initialRows }: { initialRows: OrderRow[] 
     }
   };
 
-  // Helper to copy tracking ID during demo
   const copyTracking = (id: string) => {
     navigator.clipboard.writeText(id);
     toast.success("Tracking ID Copied");
@@ -94,7 +94,7 @@ export default function OrdersClient({ initialRows }: { initialRows: OrderRow[] 
 
   return (
     <>
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-3 flex items-center justify-between gap-3 px-1">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -102,8 +102,8 @@ export default function OrdersClient({ initialRows }: { initialRows: OrderRow[] 
           className="w-full max-w-md input"
         />
         <div className="text-right">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted block mb-0.5">Revenue Collection</span>
-            <span className="text-lg font-bold text-black">RM {initialRows.reduce((a, b) => a + b.total, 0).toFixed(2)}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted block mb-0.5 opacity-60">Revenue Collection</span>
+            <span className="text-lg font-bold text-black font-josefin">RM {initialRows.reduce((a, b) => a + b.total, 0).toFixed(2)}</span>
         </div>
       </div>
 
@@ -118,13 +118,21 @@ export default function OrdersClient({ initialRows }: { initialRows: OrderRow[] 
               <div className="text-[10px] text-muted">{o.customerEmail}</div>
             </td>
             <td className="px-4 py-4">
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
-                o.status === 'PAID' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                o.status === 'SHIPPED' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                'bg-blue-50 text-blue-700 border-blue-100'
-              }`}>
-                {o.status}
-              </span>
+              <div className="flex flex-col gap-1">
+                <span className={`w-fit px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                  o.status === 'PAID' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                  o.status === 'SHIPPED' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                  o.status === 'CANCELLED' ? 'bg-red-50 text-red-700 border-red-100' :
+                  'bg-blue-50 text-blue-700 border-blue-100'
+                }`}>
+                  {o.status}
+                </span>
+                {o.paymentReason && (
+                   <span className="text-[8px] text-zinc-400 font-bold truncate max-w-[100px] uppercase">
+                     {o.paymentReason}
+                   </span>
+                )}
+              </div>
             </td>
             <td className="px-4 py-4 font-medium">{formatMYR(o.total)}</td>
             <td className="px-4 py-4 text-right">
@@ -176,19 +184,29 @@ export default function OrdersClient({ initialRows }: { initialRows: OrderRow[] 
                   <p className="font-bold text-black">{selectedOrder.customerName}</p>
                   <p className="text-xs text-zinc-500">{selectedOrder.customerEmail}</p>
                 </div>
-                {/* Logistics Badge UI */}
                 <div>
                   <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest block mb-2">Logistics Profile</span>
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-black uppercase text-xs">{selectedOrder.status}</p>
-                    {selectedOrder.trackingNumber && (
-                      <button 
-                        onClick={() => copyTracking(selectedOrder.trackingNumber!)}
-                        className="bg-amber-50 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-amber-100 flex items-center gap-1 hover:bg-amber-100 transition-colors"
-                      >
-                        {selectedOrder.trackingNumber}
-                        <ClipboardIcon className="h-2 w-2" />
-                      </button>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-black uppercase text-xs">{selectedOrder.status}</p>
+                      {selectedOrder.trackingNumber && (
+                        <button 
+                          onClick={() => copyTracking(selectedOrder.trackingNumber!)}
+                          className="bg-amber-50 text-amber-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-amber-100 flex items-center gap-1 hover:bg-amber-100 transition-colors"
+                        >
+                          {selectedOrder.trackingNumber}
+                          <ClipboardIcon className="h-2 w-2" />
+                        </button>
+                      )}
+                    </div>
+                    {/* Status Reason UI */}
+                    {selectedOrder.paymentReason && (
+                      <div className="flex items-center gap-1 text-red-500">
+                        <InformationCircleIcon className="h-3 w-3" />
+                        <p className="text-[9px] font-bold uppercase tracking-tight italic">
+                          {selectedOrder.paymentReason}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -200,7 +218,7 @@ export default function OrdersClient({ initialRows }: { initialRows: OrderRow[] 
                   {selectedOrder.items.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-center py-3 border-b border-zinc-50">
                       <span className="text-sm font-medium text-zinc-700">{item}</span>
-                      <span className="text-xs font-bold bg-zinc-100 px-2 py-1 rounded text-zinc-500">QTY: 1</span>
+                      <span className="text-xs font-bold bg-zinc-100 px-2 py-1 rounded text-zinc-500 uppercase tracking-tighter">Qty: 1</span>
                     </div>
                   ))}
                 </div>
@@ -209,7 +227,7 @@ export default function OrdersClient({ initialRows }: { initialRows: OrderRow[] 
               <div className="bg-zinc-900 rounded-2xl p-6 flex justify-between items-center text-white">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-widest opacity-60 block">Total Collection</span>
-                  <span className="text-xl font-bold">RM {selectedOrder.total.toFixed(2)}</span>
+                  <span className="text-xl font-bold font-josefin">RM {selectedOrder.total.toFixed(2)}</span>
                 </div>
 
                 <button 
