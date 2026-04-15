@@ -1,3 +1,4 @@
+// ecommerce/app/api/payment/webhook/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
@@ -8,21 +9,20 @@ export async function POST(req: Request) {
     // 1. Extract and cast all potential fields to strings
     const status = formData.get("status")?.toString(); 
     const billCode = formData.get("billcode")?.toString();
-    const reason = formData.get("reason")?.toString();
+    const reason = formData.get("reason")?.toString(); // This is the "Status Reason"
     
-    // ToyyibPay documentation says they use 'order_id' for the callback
+    // ToyyibPay uses 'order_id' to send back your external reference
     const orderId = formData.get("order_id")?.toString();
 
     console.log("--- TOYYIBPAY WEBHOOK INBOUND ---");
-    console.log(`Status: ${status} | OrderRef: ${orderId} | BillCode: ${billCode}`);
+    console.log(`Status: ${status} | OrderRef: ${orderId} | Reason: ${reason}`);
 
     if (!orderId) {
       console.error("[Webhook] Protocol Error: No Order ID found in payload.");
       return new NextResponse("OK", { status: 200 });
     }
 
-    // 2. FUZZY MATCH: Find the order even if the ID was truncated by ToyyibPay
-    // We use findFirst instead of findUnique to allow for the 'startsWith' safety net
+    // 2. Locate the order in your database
     const order = await prisma.order.findFirst({
       where: {
         OR: [
@@ -37,31 +37,43 @@ export async function POST(req: Request) {
       return new NextResponse("OK", { status: 200 });
     }
 
-    // 3. Process Status Logic
+    // 3. Update status AND save the reason
     if (status === "1") {
-      await prisma.order.update({
-        where: { id: order.id }, // Use the verified ID from our search
-        data: { 
-          status: "PAID", 
-          toyyibPayBillCode: billCode 
-        },
-      });
-      console.log(`[Webhook] SUCCESS: Order ${order.id} verified and updated to PAID.`);
-    } 
-    else if (status === "3") {
+      // SUCCESS
       await prisma.order.update({
         where: { id: order.id },
-        data: { status: "CANCELLED" },
+        data: { 
+          status: "PAID", 
+          toyyibPayBillCode: billCode,
+          // If you have a 'paymentReason' field, we clear it or set it to 'Success'
+          paymentReason: "Payment Successful" 
+        },
+      });
+      console.log(`[Webhook] SUCCESS: Order ${order.id} updated to PAID.`);
+    } 
+    else if (status === "3") {
+      // FAILED / CANCELLED
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { 
+          status: "CANCELLED",
+          paymentReason: reason || "User cancelled or transaction failed" // Save the specific reason
+        },
       });
       console.log(`[Webhook] FAILED: Order ${order.id} updated to CANCELLED. Reason: ${reason}`);
     }
+    else if (status === "2") {
+       // PENDING
+       await prisma.order.update({
+        where: { id: order.id },
+        data: { paymentReason: "Pending Bank Verification" },
+      });
+    }
 
-    // Always return 200 OK so ToyyibPay stops sending the notification
     return new NextResponse("OK", { status: 200 });
 
   } catch (error) {
     console.error("[Webhook Exception]:", error);
-    // Return 200 even on crash to stop the ToyyibPay retry loop
     return new NextResponse("OK", { status: 200 });
   }
 }
