@@ -14,23 +14,32 @@ enum UserStatus {
   deactivated
 }
 
+// 1. ADDED: OrderStatus Enum for better type safety
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
 // ---------------------------------
 // --- AUTHENTICATION MODELS (REQUIRED FOR OAUTH)
 // ---------------------------------
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -181,16 +190,21 @@ model CartItem {
 }
 
 model Order {
-  id             String            @id @default(cuid())
-  status         String            // PAID, SHIPPED, DELIVERED
-  total          Decimal           @db.Decimal(10, 2) @default(0) 
-  trackingNumber String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  userId         String
-  user           User              @relation(fields: [userId], references: [id])
-  items          OrderItem[]
-  transaction    PaymentTransaction?
+  id              String      @id @default(cuid())
+  // 2. UPDATED: Changed status to use the Enum
+  status          OrderStatus @default(PENDING)
+  total           Decimal     @db.Decimal(10, 2) @default(0) 
+  trackingNumber  String?
+  
+  // 3. ADDED: To track the ToyyibPay transaction reference
+  toyyibPayBillCode String?   @unique
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  transaction     PaymentTransaction?
 }
 
 model OrderItem {
