@@ -1,6 +1,6 @@
 // ecommerce/app/page.tsx
 import prisma from '@/lib/prisma';
-import TopBanner from '@/components/frontstore/TopBanner';
+// import TopBanner from '@/components/frontstore/TopBanner';
 import Header from '@/components/frontstore/Header';
 import HeroSection from '@/components/frontstore/HeroSection';
 import Footer from '@/components/frontstore/Footer';
@@ -37,7 +37,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-white flex flex-col font-sans">
-      <TopBanner />
+      {/* <TopBanner /> */}
       <Header />
       
       <div className="flex-grow">

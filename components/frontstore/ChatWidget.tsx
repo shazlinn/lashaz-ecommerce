@@ -4,6 +4,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+
 import { 
   ChatBubbleLeftRightIcon, 
   XMarkIcon, 
@@ -13,11 +17,14 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function ChatWidget() {
+  // 1. DECLARE ALL HOOKS FIRST (Stable Order)
+  const pathname = usePathname();
+  const { data: session } = useSession();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [localInput, setLocalInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Manual state for maximum stability in Next 16/React 19
   const [messages, setMessages] = useState<any[]>([
     { 
       id: 'welcome', 
@@ -34,6 +41,16 @@ export default function ChatWidget() {
     }
   }, [messages]);
 
+  // 2. PERFORM VISIBILITY CHECK (After Hooks)
+  const isAdminPath = pathname?.startsWith('/admin');
+  const isAdminUser = session?.user?.role === 'admin';
+
+  // If on an admin path or logged in as admin, the widget is not rendered
+  if (isAdminPath || isAdminUser) {
+    return null;
+  }
+
+  // 3. COMPONENT LOGIC
   const handleAction = async (e?: React.FormEvent, manualText?: string) => {
     e?.preventDefault();
     
@@ -66,7 +83,6 @@ export default function ChatWidget() {
         if (done) break;
         
         const chunk = decoder.decode(value);
-        // Cleaning Vercel AI SDK prefixes
         const cleanChunk = chunk.replace(/^\d+:"/g, '').replace(/"$/g, '').replace(/\\n/g, '\n');
         assistantContent += cleanChunk;
 
@@ -98,7 +114,7 @@ export default function ChatWidget() {
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <div className="w-12 h-12 bg-black/5 backdrop-blur-md rounded-2xl flex items-center justify-center border border-black/5">
-                      <SparklesIcon className="h-6 w-6 text-[#D4AF37]" /> {/* Luxury Gold Sparkle */}
+                      <SparklesIcon className="h-6 w-6 text-[#D4AF37]" />
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-[3px] border-[#F3E9DC]" />
                   </div>
@@ -132,13 +148,25 @@ export default function ChatWidget() {
                         : 'bg-white text-zinc-700 rounded-[1.6rem] rounded-tl-none border border-zinc-100 shadow-sm'}`}
                     >
                     <div className="prose prose-zinc prose-sm max-w-none prose-strong:font-bold prose-strong:text-current">
-                        <ReactMarkdown>
-                          {m.content}
-                        </ReactMarkdown>
+                      <ReactMarkdown>
+                        {m.content}
+                      </ReactMarkdown>
+
+                      {m.role === 'assistant' &&
+                        m.content.includes('Shade Finder Quiz') && (
+                          <Link href="/shade-finder">
+                            <button
+                              className="mt-4 px-5 py-3 bg-black text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] hover:opacity-90 transition-all"
+                            >
+                              Start Shade Finder
+                            </button>
+                          </Link>
+                      )}
                     </div>
-                </div>
+                  </div>
                 </motion.div>
               ))}
+
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="bg-white/50 px-5 py-4 rounded-[1.5rem] flex gap-1.5 border border-zinc-100">
@@ -166,6 +194,7 @@ export default function ChatWidget() {
                   >
                     Shade Quiz
                   </button>
+
                   <button 
                     type="button"
                     onClick={() => handleAction(undefined, 'Tell me about shipping')}
@@ -187,6 +216,7 @@ export default function ChatWidget() {
                   placeholder="Inquire about beauty..." 
                   className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl pl-6 pr-14 py-4 text-[12px] focus:outline-none focus:ring-4 focus:ring-black/5 focus:border-black/20 transition-all text-black"
                 />
+
                 <button 
                   type="submit" 
                   disabled={!localInput.trim() || isLoading}
@@ -195,6 +225,7 @@ export default function ChatWidget() {
                   <PaperAirplaneIcon className="h-4 w-4" />
                 </button>
               </form>
+
               <div className="mt-5 flex items-center justify-center gap-2 opacity-25 uppercase tracking-[0.3em] text-[8px] font-bold">
                 <ShieldCheckIcon className="h-3.5 w-3.5" />
                 <span>Identity Protocol Active</span>
@@ -204,7 +235,6 @@ export default function ChatWidget() {
         )}
       </AnimatePresence>
 
-      {/* Floating Trigger Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -212,7 +242,12 @@ export default function ChatWidget() {
         className="bg-black text-white w-16 h-16 rounded-[1.6rem] shadow-2xl flex items-center justify-center border border-white/10 relative group"
       >
         <div className="absolute inset-0 bg-gradient-to-tr from-zinc-800 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[1.6rem]" />
-        {isOpen ? <XMarkIcon className="h-6 w-6 relative z-10" /> : <ChatBubbleLeftRightIcon className="h-6 w-6 relative z-10" />}
+        
+        {isOpen ? (
+          <XMarkIcon className="h-6 w-6 relative z-10" />
+        ) : (
+          <ChatBubbleLeftRightIcon className="h-6 w-6 relative z-10" />
+        )}
       </motion.button>
     </div>
   );

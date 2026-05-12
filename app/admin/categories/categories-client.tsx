@@ -1,4 +1,3 @@
-// app/admin/categories/categories-client.tsx
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -15,10 +14,22 @@ export default function CategoriesClient({ initialRows }: { initialRows: any[] }
   }, [query, initialRows]);
 
   async function deleteCategory(id: string) {
-    if (!confirm('Delete this category? Products in this category will become uncategorized.')) return;
-    const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
-    if (res.ok) router.refresh();
-    else alert('Failed to delete. Ensure no products are strictly dependent on this category.');
+    if (!confirm('Delete this category? Products in this category must be reassigned first.')) return;
+    
+    try {
+      const res = await fetch(`/api/admin/categories?id=${id}`, { 
+        method: 'DELETE' 
+      });
+
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const errorMsg = await res.text();
+        alert(errorMsg || 'Failed to delete category.');
+      }
+    } catch (error) {
+      alert('A network error occurred.');
+    }
   }
 
   return (
@@ -41,7 +52,12 @@ export default function CategoriesClient({ initialRows }: { initialRows: any[] }
             <td className="px-4 py-3">{c.productCount}</td>
             <td className="px-4 py-3 text-right">
               <div className="flex justify-end gap-2">
-                <button onClick={() => deleteCategory(c.id)} className="btn-muted xs hover:text-red-500">Delete</button>
+                <button 
+                  onClick={() => deleteCategory(c.id)} 
+                  className="btn-muted xs hover:text-red-500"
+                >
+                  Delete
+                </button>
               </div>
             </td>
           </tr>
