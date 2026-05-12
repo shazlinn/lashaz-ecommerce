@@ -32,3 +32,35 @@ export async function POST(req: Request) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return new NextResponse('Category ID is required', { status: 400 });
+    }
+
+    // Safety: Check if products are still assigned
+    const productCount = await prisma.product.count({
+      where: { categoryId: id }
+    });
+
+    if (productCount > 0) {
+      return new NextResponse(
+        `Cannot delete: ${productCount} products are still using this category.`, 
+        { status: 400 }
+      );
+    }
+
+    await prisma.category.delete({
+      where: { id }
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (e) {
+    console.error('[CATEGORY_DELETE]', e);
+    return new NextResponse('Failed to delete category', { status: 500 });
+  }
+}

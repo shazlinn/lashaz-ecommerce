@@ -1,4 +1,4 @@
-// lashaz-ecommerce/components/frontstore/ProductCard.tsx
+// ecommerce/components/frontstore/ProductCard.tsx
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +10,7 @@ import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 import { motion, AnimatePresence } from 'framer-motion'; 
 import toast from 'react-hot-toast'; 
 import { useSession } from 'next-auth/react'; 
-import { useSearchParams } from 'next/navigation'; // Added to read quiz results
+import { useSearchParams } from 'next/navigation';
 
 export default function ProductCard({ product }: { product: any }) {
   const { data: session } = useSession();
@@ -22,14 +22,16 @@ export default function ProductCard({ product }: { product: any }) {
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
 
   // --- IDENTITY MATCH LOGIC ---
-  // Extract tags from URL (e.g., ?tags=Fair,Warm,Oily)
   const activeTags = searchParams.get('tags')?.split(',') || [];
   const productTags = product.tags?.map((t: any) => t.tag.name) || [];
   
-  // Find if any active tag matches this product's tags or its dedicated skinType
   const matchReason = activeTags.find(tag => 
     productTags.includes(tag) || product.skinType === tag
   );
+
+  // --- AUTOMATIC BADGE LOGIC ---
+  const isNewArrival = productTags.some((tagName: string) => tagName.toLowerCase() === 'new');
+  const isSale = productTags.some((tagName: string) => tagName.toLowerCase() === 'sale');
 
   const images = product.image ? product.image.split(',') : []; 
   const displayImage = images[0] || '/placeholder-makeup.png';
@@ -86,9 +88,27 @@ export default function ProductCard({ product }: { product: any }) {
       <Link href={`/product/${product.slug}`}>
         <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-zinc-50 mb-4 transition-transform group-hover:scale-[1.02]">
           
+          {/* BADGE STACKING CONTAINER */}
+          <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+            {isNewArrival && (
+              <div className="bg-white text-black text-[9px] font-bold uppercase px-3 py-1.5 rounded-full tracking-[0.2em] shadow-lg shadow-black/5 border border-zinc-100 animate-in fade-in slide-in-from-left-2 duration-700 w-fit">
+                New
+              </div>
+            )}
+
+            {isSale && (
+              <div className="bg-red-600 text-white text-[9px] font-bold uppercase px-3 py-1.5 rounded-full tracking-[0.2em] shadow-lg animate-in fade-in slide-in-from-left-2 duration-700 w-fit">
+                Sale
+              </div>
+            )}
+          </div>
+
           {/* MATCH REASON BADGE */}
           {matchReason && (
-            <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-black/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-xl animate-in fade-in zoom-in duration-500">
+            <div 
+              className={`absolute left-4 z-20 flex items-center gap-1.5 bg-black/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-xl animate-in fade-in zoom-in duration-500
+                ${(isNewArrival && isSale) ? 'top-24' : (isNewArrival || isSale) ? 'top-14' : 'top-4'}`}
+            >
               <SparklesIcon className="h-3 w-3 text-amber-400" />
               <span className="text-[8px] font-bold uppercase tracking-[0.1em] text-white">
                 Matched: {matchReason}
@@ -172,8 +192,23 @@ export default function ProductCard({ product }: { product: any }) {
         <p className="text-gray-400 text-sm">
           {product.category?.name || product.category}
         </p>
+        
+        {/* PRICE DISPLAY WITH STRIKETHROUGH LOGIC */}
         <div className="flex items-center gap-3 mt-2">
-          <span className="text-black font-bold text-xl">MYR {product.price}</span>
+          {isSale ? (
+            <>
+              <span className="text-red-600 font-bold text-xl">
+                MYR {Number(product.price).toFixed(2)}
+              </span>
+              <span className="text-gray-400 text-sm line-through decoration-1">
+                was MYR {(Number(product.price) + 20).toFixed(2)}
+              </span>
+            </>
+          ) : (
+            <span className="text-black font-bold text-xl">
+              MYR {Number(product.price).toFixed(2)}
+            </span>
+          )}
         </div>
       </div>
     </div>

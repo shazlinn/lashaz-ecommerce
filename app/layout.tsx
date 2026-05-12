@@ -33,6 +33,10 @@ const workSans = Work_Sans({
 export const metadata: Metadata = {
   title: 'La Shaz',
   description: 'La Shaz Ecommerce - Beauty & Makeup',
+  icons: {
+    icon: '/lashaz-logo.svg', // Points to public/lashaz-logo.svg
+    // apple: '/lashaz-logo.svg', 
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

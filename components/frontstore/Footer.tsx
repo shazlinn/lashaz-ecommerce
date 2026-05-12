@@ -75,11 +75,11 @@ export default function Footer() {
           </p>
           <div className="flex gap-4">
             {/* Payment Method Icons Placeholder */}
-            {['Visa', 'Mastercard', 'PayPal', 'ApplePay', 'GPay'].map((pay) => (
+            {/* {['Visa', 'Mastercard', 'PayPal', 'ApplePay', 'GPay'].map((pay) => (
               <div key={pay} className="h-6 w-10 bg-white border border-gray-100 rounded-md flex items-center justify-center text-[8px] font-bold text-gray-300 uppercase">
                 {pay}
               </div>
-            ))}
+            ))} */}
           </div>
         </div>
       </div>
