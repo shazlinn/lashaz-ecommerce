@@ -4,6 +4,7 @@ import ProductCard from '@/components/frontstore/ProductCard';
 import Header from '@/components/frontstore/Header';
 import Footer from '@/components/frontstore/Footer';
 
+export const revalidate = 0;
 export default async function SalePage() {
   // Fetch products with the "sale" tag and include relationships for the badge logic
   const saleProducts = await prisma.product.findMany({
