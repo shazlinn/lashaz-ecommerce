@@ -5,6 +5,7 @@ import ProductCard from '@/components/frontstore/ProductCard';
 import Header from '@/components/frontstore/Header';
 import Footer from '@/components/frontstore/Footer';
 
+export const revalidate = 0;
 export default async function NewArrivalsPage() {
   const newArrivals = await prisma.product.findMany({
     where: {
