@@ -1,4 +1,4 @@
-// lashaz-ecommerce/app/api/admin/products/[id]/route.ts
+// ecommerce/app/api/admin/products/[id]/route.ts
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
@@ -44,37 +44,43 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const body = await req.json();
     const { name, slug, description, price, stock, imageUrl, skinType, categoryId, tags } = body;
 
-    const data: any = {};
-    if (name !== undefined) data.name = name;
-    if (slug !== undefined) data.slug = slug.trim().toLowerCase();
-    if (description !== undefined) data.description = description;
-    if (price !== undefined) data.price = Number(price);
-    if (stock !== undefined) data.stock = Number(stock);
-    if (imageUrl !== undefined) data.imageUrl = imageUrl || null;
-    if (skinType !== undefined) data.skinType = skinType || null; //
-    if (categoryId !== undefined) data.categoryId = categoryId;
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (slug !== undefined) updateData.slug = slug.trim().toLowerCase();
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = Number(price);
+    if (stock !== undefined) updateData.stock = Number(stock);
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl || null;
+    if (skinType !== undefined) updateData.skinType = skinType || null;
+    if (categoryId !== undefined) updateData.categoryId = categoryId;
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const prod = await tx.product.update({
-        where: { id: id },
-        data,
-      });
-
-      if (tags) {
-        await tx.productTag.deleteMany({ where: { productId: id } });
-        for (const tName of tags) {
-          if (!tName.trim()) continue;
-          const tag = await tx.tag.upsert({
-            where: { name: tName.trim() },
+    if (tags) {
+      const tagRecords = await Promise.all(
+        tags.map(async (tName: string) => {
+          const trimmed = tName.trim();
+          if (!trimmed) return null;
+          return prisma.tag.upsert({
+            where: { name: trimmed },
             update: {},
-            create: { name: tName.trim() },
+            create: { name: trimmed },
           });
-          await tx.productTag.create({
-            data: { productId: id, tagId: tag.id },
-          });
-        }
-      }
-      return prod;
+        })
+      );
+
+      const validTagIds = tagRecords.filter(t => t !== null).map(t => t!.id);
+
+      // Add nested delete/create logic to the main update object
+      updateData.tags = {
+        deleteMany: {}, // Clear all existing product-tag links
+        create: validTagIds.map(tagId => ({
+          tagId: tagId
+        }))
+      };
+    }
+
+    const updated = await prisma.product.update({
+      where: { id: id },
+      data: updateData,
     });
 
     return NextResponse.json(normalize(updated));
@@ -88,10 +94,11 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
 
   try {
+    // Sequential transaction is fine for simple deletions
     await prisma.$transaction([
       prisma.productTag.deleteMany({ where: { productId: id } }),
       prisma.cartItem.deleteMany({ where: { productId: id } }),
-      prisma.wishlistItem.deleteMany({ where: { productId: id } }), // CLEANUP WISHLIST
+      prisma.wishlistItem.deleteMany({ where: { productId: id } }),
       prisma.orderItem.deleteMany({ where: { productId: id } }),
       prisma.product.delete({ where: { id: id } }),
     ]);

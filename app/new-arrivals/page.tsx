@@ -1,11 +1,11 @@
 // ecommerce/app/new-arrivals/page.tsx
+import { Suspense } from 'react'; // 1. Added Suspense import
 import prisma from '@/lib/prisma';
 import ProductCard from '@/components/frontstore/ProductCard';
 import Header from '@/components/frontstore/Header';
 import Footer from '@/components/frontstore/Footer';
 
 export default async function NewArrivalsPage() {
-  // 1. Fetch products that have the tag "new"
   const newArrivals = await prisma.product.findMany({
     where: {
       tags: {
@@ -13,7 +13,7 @@ export default async function NewArrivalsPage() {
           tag: {
             name: {
               equals: 'new',
-              mode: 'insensitive' // Catches "New", "NEW", or "new"
+              mode: 'insensitive'
             }
           }
         }
@@ -21,8 +21,6 @@ export default async function NewArrivalsPage() {
     },
     include: {
       category: true,
-      // CRITICAL: We must include the tags so the ProductCard 
-      // can "see" them and display the NEW badge.
       tags: {
         include: {
           tag: true
@@ -49,18 +47,27 @@ export default async function NewArrivalsPage() {
         </header>
 
         {newArrivals.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-            {newArrivals.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={{
-                  ...product,
-                  price: Number(product.price),
-                  image: product.imageUrl // Mapping DB imageUrl to card image prop
-                }} 
-              />
-            ))}
-          </div>
+          /* 2. Wrapped the product grid in a Suspense boundary */
+          <Suspense fallback={
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="aspect-[4/5] bg-zinc-50 animate-pulse rounded-2xl" />
+              ))}
+            </div>
+          }>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+              {newArrivals.map((product) => (
+                <ProductCard 
+                  key={product.id} 
+                  product={{
+                    ...product,
+                    price: Number(product.price),
+                    image: product.imageUrl 
+                  }} 
+                />
+              ))}
+            </div>
+          </Suspense>
         ) : (
           <div className="py-20 text-center border border-dashed border-zinc-200 rounded-[3rem]">
             <p className="text-zinc-400 uppercase text-xs font-bold tracking-widest">
