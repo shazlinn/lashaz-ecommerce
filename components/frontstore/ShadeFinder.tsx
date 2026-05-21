@@ -11,7 +11,7 @@ import {
   HandRaisedIcon,
   ArrowDownTrayIcon,
   ShoppingBagIcon,
-  LifebuoyIcon // Represents skin texture/pores
+  LifebuoyIcon 
 } from '@heroicons/react/24/outline';
 
 // --- TYPES ---
@@ -94,43 +94,74 @@ export default function ShadeFinder() {
   const router = useRouter();
 
   const generateAnalysis = (data: string[]) => {
-    const [undertone, surface, skinType, finish, coverage] = data;
+    const [undertone, surface, skinCondition, finish, coverage] = data;
     
-    // 1. General Portable Profile (Industry Standard)
-    let globalProfile = "Balanced Skin";
+    //General Portable Profile (Universal Industry Standards)
+    let globalProfile = "Balanced Skin Strategy";
     let industryEquivalent = "Level 2 Neutral Base";
     
     if (surface === 'Fair') {
-        globalProfile = undertone === 'Cool' ? "Porcelain Cool Diagnostic" : "Radiant Kuning Langsat Strategy";
-        industryEquivalent = undertone === 'Cool' ? "10C / Cool Ivory" : "15W / Warm Ivory";
+      globalProfile = undertone === 'Cool' ? "Porcelain Cool Diagnostic" : "Radiant Kuning Langsat Strategy";
+      industryEquivalent = undertone === 'Cool' ? "10C / Cool Ivory" : "15W / Warm Ivory";
     } else if (surface === 'Medium') {
-        globalProfile = "Balanced Sand";
-        industryEquivalent = "25N / Neutral Sand";
+      globalProfile = "Balanced Sand Strategy";
+      industryEquivalent = "25N / Neutral Sand";
     } else if (surface === 'Deep') {
-        globalProfile = "Deep Sawo Matang ";
-        industryEquivalent = "40W / Warm Toffee";
+      globalProfile = "Deep Sawo Matang Strategy";
+      industryEquivalent = "40W / Warm Toffee";
     }
 
-    // 2. La Shaz Recommendation
-    let shade = "Custom Protocol";
-    let detail = "Your profile suggests a specialized blend of pigment and hydration.";
+    //Bound Catalog Recommender
+    let shade = "Foundation Tester";
+    let detail = "We recommend utilizing our multi-shade matrix test kit to verify your biological spectrum balance before full size application.";
+    let shopQueryTags: string[] = ["Sample"];
 
     if (surface === 'Fair') {
       shade = undertone === 'Cool' ? "Foundation - KPOP" : "Foundation - IVORY";
       detail = undertone === 'Cool' 
-        ? "Formulated specifically for fair skin with cool undertones to prevent ashy oxidation."
-        : "Curated for light-yellow undertones to provide a seamless radiance.";
+        ? "Specially formulated for very fair skin with cool or pinkish undertones. Provides a bright, fresh finish without looking ashy."
+        : "The go-to shade for fair to light skin with yellow or 'Kuning Langsat' undertones. Blends seamlessly for a healthy radiance.";
+      shopQueryTags = undertone === 'Cool' ? ["Fair Skin", "Cool Undertone", "Pinkish"] : ["Light Skin", "Yellow Undertone", "Kuning Langsat"];
     } else if (surface === 'Medium') {
       shade = "Foundation - ALMOND";
-      detail = "A versatile neutral formula designed for a 'my skin but better' finish.";
+      detail = "A versatile neutral shade for medium skin tones. Delivers a balanced, 'my skin but better' look that lasts all day.";
+      shopQueryTags = ["Medium Skin", "Neutral Undertone", "Natural Finish"];
     } else if (surface === 'Deep') {
       shade = "Foundation - AMBER";
-      detail = "A rich, warm formulation crafted specifically for Sawo Matang skin profiles.";
+      detail = "A rich, warm shade designed for tan and 'Sawo Matang' skin tones. Celebrates natural glow without a greyish cast.";
+      shopQueryTags = ["Tan Skin", "Sawo Matang", "Warm Undertone"];
     }
 
+    //Automated Routine Generation Build Matrix
+    const routineAddons: string[] = [];
+    
+    if (skinCondition === 'Oily' || skinCondition === 'Combination') {
+      routineAddons.push("Primer: Controls excess sebum and blurs visible open pores/fine lines.");
+      shopQueryTags.push("Oil Control", "Pore Blurring");
+    }
+    
+    if (finish === 'Dewy') {
+      routineAddons.push("Sponge: Utilize damp to lock in a luminous glass-skin finish.");
+      shopQueryTags.push("Dewy Finish");
+    } else if (coverage === 'Full') {
+      routineAddons.push("Sponge: Utilize completely dry for dense buildable opacity layers.");
+      shopQueryTags.push("Full Coverage");
+    }
+
+    // Always bundle defensive hydration protection
+    routineAddons.push("Sunscreen: Deeply hydrating weightless SPF 50 shield without white cast.");
+    shopQueryTags.push("Hydrating", "UV Protection");
+
     return { 
-      shade, detail, skinType, finish, coverage, 
-      globalProfile, industryEquivalent,
+      shade, 
+      detail, 
+      skinType: skinCondition, 
+      finish, 
+      coverage, 
+      globalProfile, 
+      industryEquivalent,
+      routineAddons,
+      shopUrlTags: shopQueryTags.join(','),
       accuracy: (Math.random() * (99.8 - 97.2) + 97.2).toFixed(1) 
     };
   };
@@ -197,19 +228,19 @@ export default function ShadeFinder() {
                   <SparklesIcon className="h-3 w-3" />
                   <span className="text-[9px] font-bold uppercase tracking-[0.2em]">Diagnostic Match: {analysis.accuracy}%</span>
                 </div>
-                <h2 className="text-4xl md:text-5xl font-josefin font-bold uppercase tracking-tighter">Your Result</h2>
+                <h2 className="text-4xl md:text-5xl font-josefin font-bold uppercase tracking-tighter">Your Identity Protocol</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left border-y border-zinc-100 py-12">
                 <div className="space-y-8">
-                  {/* --- THE GENERAL RESULT --- */}
+                  {/* --- THE PORTABLE GENERAL PROFILE --- */}
                   <div>
                     <p className="text-[10px] font-bold uppercase text-zinc-400 tracking-widest mb-1">Portable Beauty Profile</p>
                     <p className="text-2xl font-josefin font-bold uppercase">{analysis.globalProfile}</p>
                     <p className="text-[11px] font-bold text-zinc-500 mt-1 italic">Industry Equivalent: {analysis.industryEquivalent}</p>
                   </div>
                   
-                  {/* --- THE LA SHAZ RECOMMENDATION --- */}
+                  {/* --- THE BINDING CATALOG SPECIFIC MATCH --- */}
                   <div className="bg-white/40 p-6 rounded-2xl border border-zinc-100">
                     <p className="text-[9px] font-bold uppercase text-black tracking-widest mb-2">La Shaz Recommendation</p>
                     <p className="text-xl font-josefin font-bold uppercase mb-2">{analysis.shade}</p>
@@ -217,30 +248,38 @@ export default function ShadeFinder() {
                   </div>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm p-8 rounded-3xl space-y-5 border border-white shadow-sm">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-black mb-4">Technical Specifications</p>
-                  {[
-                    { label: 'Skin Taxonomy', value: analysis.skinType },
-                    { label: 'Desired Aesthetic', value: analysis.finish },
-                    { label: 'Opacity Level', value: analysis.coverage }
-                  ].map((item) => (
-                    <div key={item.label} className="flex justify-between items-center border-b border-zinc-100 pb-2">
-                      <span className="text-[9px] text-zinc-400 font-bold uppercase">{item.label}</span>
-                      <span className="text-[10px] text-black font-bold uppercase">{item.value}</span>
+                {/* --- AUTONOMOUS DYNAMIC PREPARATION ROUTINE --- */}
+                <div className="bg-white/70 backdrop-blur-sm p-8 rounded-3xl flex flex-col justify-between border border-white shadow-sm">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-black mb-6">Complete Routine Regimen</p>
+                    <div className="space-y-4">
+                      {analysis.routineAddons.map((item: string, idx: number) => (
+                        <div key={idx} className="flex items-start gap-3 border-b border-zinc-100/60 pb-3 text-[11px] text-zinc-700 font-medium leading-relaxed">
+                          <span className="h-1.5 w-1.5 rounded-full bg-black flex-shrink-0 mt-1.5" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
                   <div className="mt-8 p-4 bg-black/5 rounded-xl">
                      <p className="text-[8px] font-bold uppercase text-zinc-400 tracking-widest mb-1">Consultant Tip</p>
-                     <p className="text-[10px] text-zinc-600 leading-relaxed">Present this protocol at any professional beauty counter for precise shade calibration.</p>
+                     <p className="text-[10px] text-zinc-600 leading-relaxed">Present this structural protocol profile at any professional cosmetics counter for precise alternative tracking.</p>
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 justify-center no-print">
-                <button onClick={() => router.push(`/shop?tags=${encodeURIComponent(selections.join(','))}`)} className="bg-black text-white px-10 py-5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10">
+                <button 
+                  onClick={() => router.push(`/shop?tags=${encodeURIComponent(analysis.shopUrlTags)}`)} 
+                  className="bg-black text-white px-10 py-5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10"
+                >
                   <ShoppingBagIcon className="h-4 w-4" /> Shop My Match
                 </button>
-                <button onClick={() => window.print()} className="px-10 py-5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 border border-zinc-200 flex items-center justify-center gap-3 hover:text-black hover:border-black transition-all">
+                <button 
+                  onClick={() => window.print()} 
+                  className="px-10 py-5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 border border-zinc-200 flex items-center justify-center gap-3 hover:text-black hover:border-black transition-all"
+                >
                   <ArrowDownTrayIcon className="h-4 w-4" /> Download Result
                 </button>
               </div>
@@ -263,7 +302,7 @@ export default function ShadeFinder() {
                       </div>
                     )}
                     {opt.icon && (
-                      <div className="h-12 w-12 rounded-2xl bg-zinc-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                      <div className="h-12 w-12 rounded-2xl bg-zinc-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors flex-shrink-0">
                         <opt.icon className="h-6 w-6" />
                       </div>
                     )}
