@@ -1,3 +1,4 @@
+// ecommerce/app/api/chat/route.ts
 import { groq } from '@ai-sdk/groq';
 import { streamText } from 'ai';
 
