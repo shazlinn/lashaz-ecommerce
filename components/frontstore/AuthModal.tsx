@@ -1,3 +1,4 @@
+// ecommerce/components/frontstore/AuthModal.tsx
 'use client';
 
 import { useState } from 'react';

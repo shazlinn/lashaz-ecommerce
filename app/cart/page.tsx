@@ -1,8 +1,11 @@
-// lashaz-ecommerce/app/cart/page.tsx
+// ecommerce/app/cart/page.tsx
 'use client';
 
+import { useState } from 'react'; // 1. Added state tracker
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation'; // 2. Added router navigation hook
+import { useSession } from 'next-auth/react'; // 3. Added session checking hook
 import { useCart } from '@/app/context/CartContext';
 import { 
   TrashIcon, 
@@ -10,15 +13,31 @@ import {
   MinusIcon, 
   ArrowRightIcon, 
   ShoppingBagIcon,
-  ChevronLeftIcon // Import the back icon
+  ChevronLeftIcon 
 } from '@heroicons/react/24/outline';
+import AuthModal from '@/components/frontstore/AuthModal'; // 4. Imported AuthModal
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity } = useCart();
+  const { data: session } = useSession(); // Access auth state matrix
+  const router = useRouter();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false); // Controls local popup view
 
   const subtotal = cart.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
   const shipping = subtotal > 200 ? 0 : 10;
   const total = subtotal + shipping;
+
+  // 5. Intercept checkout loop to verify authorization criteria
+  const handleCheckoutSecurely = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!session) {
+      // Unauthenticated: Intercept and project local popover card
+      setIsAuthModalOpen(true);
+    } else {
+      // Secure token valid: Push directly into core order funnel
+      router.push('/checkout');
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -38,8 +57,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 font-sans">
-      {/* 1. Added Back Navigation */}
+    <div className="container mx-auto px-4 py-12 font-sans text-black">
       <div className="mb-8">
         <Link 
           href="/" 
@@ -110,7 +128,7 @@ export default function CartPage() {
                       >
                         <PlusIcon className="h-3 w-3" />
                       </button>
-                    </div>
+                    </                    div>
                     <span className="text-xl font-bold font-josefin text-black">
                       MYR {(item.price * item.quantity).toFixed(2)}
                     </span>
@@ -121,6 +139,7 @@ export default function CartPage() {
           })}
         </div>
 
+        {/* SUMMARY ACROSS THE PANEL */}
         <aside className="lg:col-span-4">
           <div className="bg-zinc-50 rounded-[2.5rem] p-10 sticky top-32 border border-gray-100 shadow-sm">
             <h2 className="font-josefin font-bold text-2xl uppercase tracking-tight mb-8">Summary</h2>
@@ -142,13 +161,14 @@ export default function CartPage() {
               </div>
             </div>
 
-            <Link 
-              href="/checkout" 
+            {/* 6. CHANGED FROM Link TO secure execution button */}
+            <button 
+              onClick={handleCheckoutSecurely}
               className="w-full mt-10 bg-black text-white py-5 rounded-full font-bold uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:bg-zinc-800 transition-all shadow-2xl active:scale-95"
             >
               Checkout Now
               <ArrowRightIcon className="h-4 w-4" />
-            </Link>
+            </button>
 
             <p className="text-[9px] text-gray-300 text-center mt-6 uppercase tracking-widest font-bold">
               Secure Payments • La Shaz Standard
@@ -156,6 +176,9 @@ export default function CartPage() {
           </div>
         </aside>
       </div>
+
+      {/* 7. Mount the AuthModal instance to monitor authorization events inline */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
 }
