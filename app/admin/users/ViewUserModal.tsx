@@ -1,3 +1,4 @@
+// ecommerce/app/admin/users/ViewUserModal.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
