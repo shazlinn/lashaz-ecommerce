@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       billPriceSetting: "1",
       billPayorInfo: "1",
       billAmount: subtotal.toString(),
-      billReturnUrl: `${process.env.NEXTAUTH_URL}/payment-success`, 
+      billReturnUrl: `${process.env.NEXTAUTH_URL}/api/payment/process-return`,
       billCallbackUrl: `${process.env.NEXTAUTH_URL}/api/payment/webhook`,
       billExternalReferenceNo: order.id.slice(0,30), // We use the Prisma Order ID here
       billTo: userName,
