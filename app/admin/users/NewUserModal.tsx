@@ -1,3 +1,4 @@
+// ecommerce/app/admin/users/NewUserModal.tsx
 'use client';
 
 import { useState } from 'react';
@@ -17,9 +18,12 @@ export default function NewUserModal({
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
-  async function submit() {
+  // Explicit form event handler to prevent default navigation reloads
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     setErr('');
     setLoading(true);
+    
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
@@ -30,6 +34,9 @@ export default function NewUserModal({
         const msg = await res.text();
         throw new Error(msg || 'Failed to create user');
       }
+      
+      // Reset form variables on success execution
+      setForm({ name: '', email: '', role: 'customer', password: '' });
       setOpen(false);
       onCreated();
     } catch (e: any) {
@@ -49,59 +56,72 @@ export default function NewUserModal({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-4 shadow-lg">
-            <div className="mb-3 text-lg font-semibold">Create User</div>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4 animate-in fade-in duration-200">
+          {/* Changed container root element to an actual HTML form structure */}
+          <form 
+            onSubmit={handleSubmit}
+            className="w-full max-w-md rounded-lg bg-white p-4 shadow-lg flex flex-col"
+          >
+            <div className="mb-3 text-lg font-semibold text-black">Create User</div>
 
             <div className="mb-3 grid gap-2">
+              {/* Added required validator parameters */}
               <input
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-black placeholder-zinc-400 outline-none focus:border-black"
                 placeholder="Name"
+                type="text"
+                required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
+              
+              {/* Swapped type from "text" to "email" to ensure native browser syntactic validation */}
               <input
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
-                placeholder="Email"
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-black placeholder-zinc-400 outline-none focus:border-black"
+                placeholder="Email (e.g. user@example.com)"
+                type="email"
+                required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
+              
               <select
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-black outline-none focus:border-black bg-white"
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
               >
                 <option value="customer">Customer</option>
                 <option value="admin">Admin</option>
               </select>
+              
               <input
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-black placeholder-zinc-400 outline-none focus:border-black"
                 placeholder="Password"
                 type="password"
+                required
                 value={form.password}
-                onChange={(e) =>
-                  setForm({ ...form, password: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
               />
-              {err && <p className="text-sm text-red-600">{err}</p>}
+              {err && <p className="text-sm font-medium text-red-600 mt-1">{err}</p>}
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 mt-2">
               <button
+                type="button" // Enforces cancel button doesn't trip form submittals
                 onClick={() => setOpen(false)}
-                className="rounded-md border border-zinc-300 px-3 py-2 text-sm"
+                className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
               >
                 Cancel
               </button>
               <button
-                onClick={submit}
+                type="submit" // Correctly flags this element as the submit mechanism
                 disabled={loading}
-                className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-white disabled:opacity-60"
+                className="rounded-md bg-zinc-900 px-3 py-2 text-sm text-white disabled:opacity-60 font-medium hover:bg-black transition-colors"
               >
                 {loading ? 'Creating…' : 'Create'}
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
     </>
