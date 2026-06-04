@@ -1,18 +1,15 @@
-// lashaz-ecommerce/app/profile/page.tsx
+// ecommerce/app/profile/page.tsx
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import LogoutButton from '@/components/frontstore/LogoutButton';
-import InvoiceButton from '@/components/frontstore/InvoiceButton'; 
+import OrderListWithSearch from '@/components/frontstore/OrderListWithSearch';
 import { 
   ChevronLeftIcon, 
   ArrowTopRightOnSquareIcon, 
   ShieldCheckIcon,
-  PencilSquareIcon,
-  ShoppingBagIcon,
-  TruckIcon, 
-  ArrowRightIcon 
+  PencilSquareIcon
 } from '@heroicons/react/24/outline';
 
 export default async function ProfilePage() {
@@ -44,7 +41,7 @@ export default async function ProfilePage() {
   });
 
   // Fetching User's Orders with associated items
-  const orders = await prisma.order.findMany({
+  const rawOrders = await prisma.order.findMany({
     where: { userId: sessionUser.id },
     select: {
       id: true,
@@ -60,10 +57,22 @@ export default async function ProfilePage() {
     orderBy: { createdAt: 'desc' }
   });
 
+  // Safe data serializations for server-to-client processing transmission
+  const formattedOrders = rawOrders.map((order) => ({
+    ...order,
+    total: Number(order.total),
+    createdAt: order.createdAt.toISOString(),
+    items: order.items.map((item: any) => ({
+      ...item,
+      price: Number(item.price),
+      product: { ...item.product, price: Number(item.product.price) }
+    }))
+  }));
+
   const isAdmin = userData?.role?.toUpperCase() === 'ADMIN';
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 font-sans">
+    <div className="mx-auto max-w-3xl px-4 py-12 font-sans text-black">
       <div className="mb-8">
         <Link 
           href="/" 
@@ -101,7 +110,7 @@ export default async function ProfilePage() {
         </div>
       </header>
 
-      <div className="space-y-8">
+      <div className="space-y-12">
         {/* Main Identity Card */}
         <div className="rounded-[2rem] border border-gray-100 p-10 space-y-10 bg-white shadow-sm">
           <div className="grid md:grid-cols-2 gap-10">
@@ -138,73 +147,14 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        {/* Recent Purchases Section */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-4">
-            <ShoppingBagIcon className="h-4 w-4 text-black" />
-            <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-black">Recent Purchases</h2>
-          </div>
-
-          {orders.length === 0 ? (
-            <div className="rounded-[2rem] border border-dashed border-zinc-200 p-12 text-center">
-              <p className="text-xs text-zinc-400 uppercase tracking-widest">No order history found.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {orders.map((order) => {
-                const plainOrder = {
-                  ...order,
-                  total: Number(order.total),
-                  createdAt: order.createdAt.toISOString(),
-                  items: order.items.map((item: any) => ({
-                    ...item,
-                    price: Number(item.price),
-                    product: { ...item.product, price: Number(item.product.price) }
-                  }))
-                };
-
-                return (
-                  <div key={order.id} className="rounded-3xl border border-zinc-100 bg-white p-6 flex flex-col md:flex-row justify-between items-center gap-4 group hover:border-black transition-all duration-500">
-                    <div className="flex-1 w-full">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold font-mono text-zinc-400">#{order.id.slice(-6).toUpperCase()}</span>
-                        <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full border ${
-                          order.status === 'PAID' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                          order.status === 'SHIPPED' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                          'bg-zinc-50 text-zinc-500 border-zinc-100'
-                        }`}>
-                          {order.status}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-zinc-400 mt-1">
-                        {new Date(order.createdAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
-                    </div>
-                    
-                    <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto">
-                      <span className="text-[12px] font-bold whitespace-nowrap">
-                        RM {Number(order.total).toFixed(2)}
-                      </span>
-                      
-                      <div className="flex items-center gap-3">
-                        {/* 1. Direct Tracking Link */}
-                        <Link 
-                          href={`/track/${order.id}`}
-                          className="flex items-center gap-2 bg-black text-white px-5 py-3 rounded-2xl text-[9px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition-all active:scale-95 shadow-sm"
-                        >
-                          <TruckIcon className="h-3 w-3" />
-                          Track Glow
-                        </Link>
-                        
-                        {/* 2. Invoice Generation */}
-                        <InvoiceButton order={plainOrder} /> 
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+        {/* Dynamic Recent Purchases Segment Section Container */}
+        <div className="space-y-6">
+          {/* 
+            CRITICAL CLEANUP: 
+            The standalone 'Recent Purchases' title layout has been cleanly removed from here.
+            It is now handled directly inside OrderListWithSearch alongside the search bar for an optimized layout row.
+          */}
+          <OrderListWithSearch initialOrders={formattedOrders} />
         </div>
       </div>
 
