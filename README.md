@@ -197,15 +197,4 @@ The application can be deployed using [Vercel](https://vercel.com/).
 
 For more information, refer to the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
 
-### A few things I intentionally changed
-
-- Removed the old **“Personalized Shopping: Products filtered by skin compatibility (Oily, Dry, Combination)”** because your current system is more accurately described by the **Shade Finder**.
-- Changed **OpenAI** to **Groq**, matching your actual implementation.
-- Removed **“in the works”** from the chatbot.
-- Added **ToyyibPay, Resend, and UploadThing** to the tech stack because they're actual parts of your system.
-- Put the project structure inside a proper ` ```text ` block so GitHub renders it correctly.
-- Made the structure match the features you actually have, rather than making the README look like a generic Next.js template.
-- Removed the old **Deploy on Vercel** template text and replaced it with a simple deployment section.
-
-One thing I'd **double-check before committing** is the exact folder names in your repo, especially `app/api/chat/`. If you paste your actual `app/` folder structure, I can make this **100% match your repository instead of guessing any folders**.
 ````
